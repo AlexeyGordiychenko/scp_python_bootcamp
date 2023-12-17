@@ -9,18 +9,18 @@ def squeak_decorator(func):
 
 
 @squeak_decorator
-def add_ingot(purse: Dict[str, int]):
+def add_ingot(purse: Dict[str, int]) -> Dict[str, int]:
     return {'gold_ingots': purse.get('gold_ingots', 0) + 1}
 
 
 @squeak_decorator
-def get_ingot(purse: Dict[str, int]):
+def get_ingot(purse: Dict[str, int]) -> Dict[str, int]:
     amount = max(0, purse.get('gold_ingots', 0) - 1)
     return {} if amount == 0 else {'gold_ingots': amount}
 
 
 @squeak_decorator
-def empty(purse: Dict[str, int]):
+def empty(purse: Dict[str, int]) -> Dict[str, int]:
     return {}
 
 
