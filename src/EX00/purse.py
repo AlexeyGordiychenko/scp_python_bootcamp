@@ -2,21 +2,13 @@ import unittest
 from typing import Dict
 
 
-def ingot_decorator(func):
-    def wrapper(purse: Dict[str, int]):
-        amount = func(purse.get('gold_ingots', 0))
-        return {} if amount == 0 else {'gold_ingots': amount}
-    return wrapper
+def add_ingot(purse: Dict[str, int]):
+    return {'gold_ingots': purse.get('gold_ingots', 0) + 1}
 
 
-@ingot_decorator
-def add_ingot(amount):
-    return amount + 1
-
-
-@ingot_decorator
-def get_ingot(amount):
-    return max(0, amount - 1)
+def get_ingot(purse: Dict[str, int]):
+    amount = max(0, purse.get('gold_ingots', 0) - 1)
+    return {} if amount == 0 else {'gold_ingots': amount}
 
 
 def empty(purse: Dict[str, int]):
