@@ -1,0 +1,10 @@
+version: '3'
+services:
+  app:
+    build: .
+    environment:
+      - S21_REDIS_HOST=redis
+  redis:
+    build: src/EX01
+    ports:
+      - "6379:6379"
