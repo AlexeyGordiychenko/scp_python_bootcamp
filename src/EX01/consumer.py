@@ -44,4 +44,5 @@ if __name__ == "__main__":
     parser.add_argument(
         '-e', help='List of bad guys\' account numbers separated by comma', type=comma_separated_int_list)
     args = parser.parse_args()
-    run_consumer(args.e)
+    account_numbers = args.e if args.e else []
+    run_consumer(account_numbers)
