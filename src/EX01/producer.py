@@ -21,7 +21,13 @@ def run_producer():
     logger = logging.getLogger('producer')
 
     # Initialize Redis
-    r = redis.Redis(host=os.getenv('S21_REDIS_HOST', 'localhost'), port=6379)
+    try:
+        r = redis.Redis(host=os.getenv(
+            'S21_REDIS_HOST', 'localhost'), port=6379)
+        r.ping()
+    except redis.ConnectionError:
+        logger.error('Can\'t connect to redis')
+        return
 
     # Generate messages and publish
     for from_account, to_account, amount in get_transfer():

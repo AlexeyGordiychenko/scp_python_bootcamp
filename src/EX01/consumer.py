@@ -25,7 +25,14 @@ def run_consumer(account_numbers):
     logger = logging.getLogger('consumer')
 
     # Initialize Redis and pub/sub
-    r = redis.Redis(host=os.getenv('S21_REDIS_HOST', 'localhost'), port=6379)
+    try:
+        r = redis.Redis(host=os.getenv(
+            'S21_REDIS_HOST', 'localhost'), port=6379)
+        r.ping()
+    except redis.ConnectionError:
+        logger.error('Can\'t connect to redis')
+        return
+
     p = r.pubsub()
     p.subscribe('transactions')
 
