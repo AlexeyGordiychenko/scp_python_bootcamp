@@ -4,6 +4,7 @@ from time import sleep
 import redis
 from itertools import permutations
 from random import randint, choice
+import os
 
 
 def get_transfer():
@@ -20,7 +21,7 @@ def run_producer():
     logger = logging.getLogger('producer')
 
     # Initialize Redis
-    r = redis.Redis(host='localhost', port=6379)
+    r = redis.Redis(host=os.getenv('S21_REDIS_HOST', 'localhost'), port=6379)
 
     # Generate messages and publish
     for from_account, to_account, amount in get_transfer():

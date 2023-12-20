@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import redis
+import os
 
 
 def comma_separated_int_list(s):
@@ -18,12 +19,13 @@ def process_data(data, account_numbers):
 
 
 def run_consumer(account_numbers):
+
     # Set up logging
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('consumer')
 
     # Initialize Redis and pub/sub
-    r = redis.Redis(host='localhost', port=6379)
+    r = redis.Redis(host=os.getenv('S21_REDIS_HOST', 'localhost'), port=6379)
     p = r.pubsub()
     p.subscribe('transactions')
 
