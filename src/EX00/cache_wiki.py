@@ -62,4 +62,4 @@ if __name__ == "__main__":
     result = []
     parse_pages(starting_page, depth, result=result)
     # print(result)
-    json.dump(result, open('links.json', 'w'), indent=4)
+    json.dump(result, open('wiki.json', 'w'), indent=4)
