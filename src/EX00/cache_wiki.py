@@ -33,7 +33,7 @@ def parse_args():
 def parse_pages(starting_page, depth, result, parsed: Set = set(), limit=100):
     page_links = parse_page(starting_page)
     logging.info(f"page parsed: {starting_page}, level: {depth}")
-    result[starting_page] = list(page_links)
+    result.append({'page': starting_page, 'links': list(page_links)})
     if len(parsed) > limit or depth < 1:
         return
     page_links_not_parsed = page_links.difference(parsed)
@@ -59,7 +59,7 @@ def parse_page(page):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     starting_page, depth = parse_args()
-    result = dict()
+    result = []
     parse_pages(starting_page, depth, result=result)
     # print(result)
     json.dump(result, open('links.json', 'w'), indent=4)
