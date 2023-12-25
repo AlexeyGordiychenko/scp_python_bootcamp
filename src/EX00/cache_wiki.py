@@ -30,7 +30,7 @@ def parse_args():
     return quote(args.page), args.depth
 
 
-def parse_pages(starting_page, depth, result, parsed: Set = set(), limit=100):
+def parse_pages(starting_page, depth, result, parsed: Set = set(), limit=1000):
     page_links = parse_page(starting_page)
     logging.info(f"page parsed: {starting_page}, level: {depth}")
     result.append({'page': starting_page, 'links': list(page_links)})
