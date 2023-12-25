@@ -1,6 +1,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import json
+import os
 import logging
 import requests
 from urllib.parse import quote
@@ -62,4 +63,5 @@ if __name__ == "__main__":
     result = []
     parse_pages(starting_page, depth, result=result)
     # print(result)
-    json.dump(result, open('wiki.json', 'w'), indent=4)
+    json.dump(result, open(os.path.join(
+        os.path.dirname(__file__), 'wiki.json'), 'w'), indent=4)
