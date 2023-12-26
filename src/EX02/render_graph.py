@@ -7,6 +7,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import time
 from datetime import timedelta
+from typing import Optional, List, Dict, Any
 
 
 def parse_args():
@@ -27,7 +28,7 @@ def parse_args():
     return args.file
 
 
-def open_json(file):
+def open_json(file: Optional[str]) -> Any:
     msg = "Database not found"
     if file is None:
         print(msg)
@@ -39,7 +40,7 @@ def open_json(file):
         print(msg)
 
 
-def visualize(file):
+def visualize(file: Optional[str]) -> None:
     graph = open_json(file)
     if graph:
         time_start = time.time()

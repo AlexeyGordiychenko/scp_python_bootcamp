@@ -7,7 +7,7 @@ import time
 from datetime import timedelta
 
 
-def parse_args():
+def parse_args() -> str:
     parser = argparse.ArgumentParser(
         description="Load data from .json to neo4j")
     parser.add_argument(
@@ -21,7 +21,7 @@ def parse_args():
     return args.file
 
 
-def neo4j(file):
+def neo4j(file: str) -> None:
     driver = get_db_driver()
     if driver:
         graph = open_json(file)
@@ -30,7 +30,7 @@ def neo4j(file):
         driver.close()
 
 
-def get_db_driver():
+def get_db_driver() -> GraphDatabase.driver:
     env_path = os.path.join(os.path.dirname(__file__), '../.env')
     load_dotenv(env_path)
     neo4j_pwd = os.environ.get("S21_NEO4J_PASS", None)
@@ -45,7 +45,7 @@ def get_db_driver():
         print('Please, provide neo4j password in the .env file')
 
 
-def open_json(file):
+def open_json(file: str) -> dict:
     try:
         with open(file) as file:
             return json.load(file)
@@ -53,7 +53,7 @@ def open_json(file):
         print(f"Couldn\'t read the json file: {e}")
 
 
-def run_query(driver, graph):
+def run_query(driver: GraphDatabase.driver, graph: dict) -> None:
     try:
         with driver.session() as session:
             time_start = time.time()

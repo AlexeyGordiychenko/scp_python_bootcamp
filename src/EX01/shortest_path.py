@@ -4,6 +4,7 @@ import json
 import os
 from dotenv import load_dotenv
 from urllib.parse import quote
+from typing import Any, Dict, List, Optional, Set
 
 
 def parse_args():
@@ -53,7 +54,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def shortest_path(graph, start, end):
+def shortest_path(graph: Dict[str, Set[str]], start: str, end: str) -> Optional[List[str]]:
     # Breadth-First Search
     # queue to keep track of nodes and paths
     queue = deque([(start, [start])])
@@ -77,7 +78,7 @@ def shortest_path(graph, start, end):
     return None
 
 
-def open_json(file):
+def open_json(file: Optional[str]) -> Any:
     msg = "Database not found"
     if file is None:
         print(msg)
@@ -89,7 +90,7 @@ def open_json(file):
         print(msg)
 
 
-def get_graph(data, bidirected):
+def get_graph(data: List[Dict[str, Any]], bidirected: bool) -> Dict[str, Set[str]]:
     graph = {item['page']: set(item['links']) for item in data}
     if bidirected:
         for node, links in list(graph.items()):

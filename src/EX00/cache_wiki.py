@@ -6,11 +6,11 @@ import logging
 import requests
 from urllib.parse import quote
 from bs4 import BeautifulSoup as BS
-from typing import Set, Dict
+from typing import Set, Dict, List, Tuple
 import itertools
 
 
-def parse_args():
+def parse_args() -> Tuple[str, int]:
     parser = argparse.ArgumentParser(
         description="Cache Wikipedia links from pages")
     parser.add_argument(
@@ -31,7 +31,7 @@ def parse_args():
     return quote(args.page), args.depth
 
 
-def parse_pages(starting_page, depth, result, limit, parsed: Set = set()):
+def parse_pages(starting_page: str, depth: int, result: List[Dict[str, List[str]]], limit: int, parsed: Set[str] = set()) -> None:
     page_links = parse_page(starting_page, depth)
     result.append({'page': starting_page, 'links': list(page_links)})
     if len(parsed) > limit or depth < 1:
@@ -46,7 +46,7 @@ def parse_pages(starting_page, depth, result, limit, parsed: Set = set()):
                             1, result, limit, parsed)
 
 
-def parse_page(page, depth):
+def parse_page(page: str, depth: int) -> Set[str]:
     try:
         response = requests.get(f'https://en.wikipedia.org/wiki/{page}')
         response.raise_for_status()
@@ -65,7 +65,7 @@ def parse_page(page, depth):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     starting_page, depth = parse_args()
-    result = []
+    result: List[Dict[str, List[str]]] = []
     limit = 1000
     parse_pages(starting_page, depth, result=result, limit=limit)
     if len(result) >= limit:
