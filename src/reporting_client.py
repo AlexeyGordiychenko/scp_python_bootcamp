@@ -1,7 +1,7 @@
 import argparse
 import grpc
-from spaceship_pb2 import Coordinates
-import spaceship_pb2_grpc
+from proto.spaceship_pb2 import Coordinates
+from proto.spaceship_pb2_grpc import SpaceshipServiceStub
 import json
 
 
@@ -26,7 +26,7 @@ def run(coordinates):
             print('Error: Server is not running.')
             return
 
-        stub = spaceship_pb2_grpc.SpaceshipServiceStub(channel)
+        stub = SpaceshipServiceStub(channel)
         for spaceship in stub.GetSpaceships(Coordinates(coordinate=coordinates)):
             message_dict = message_to_dict(spaceship)
             if 'officers' not in message_dict:

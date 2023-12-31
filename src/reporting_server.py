@@ -1,6 +1,6 @@
 import grpc
-from spaceship_pb2 import Spaceship
-import spaceship_pb2_grpc
+from proto.spaceship_pb2 import Spaceship
+from proto.spaceship_pb2_grpc import SpaceshipServiceServicer, add_SpaceshipServiceServicer_to_server
 import random
 import time
 import randomname
@@ -25,7 +25,7 @@ officer_ranks = [
 ]
 
 
-class SpaceshipServiceServicer(spaceship_pb2_grpc.SpaceshipServiceServicer):
+class SpaceshipServiceServicer(SpaceshipServiceServicer):
     def GetSpaceships(self, request, context):
         print(
             f'Scanning coordinates:{request.coordinate}')
@@ -71,7 +71,7 @@ def generate_random_spaceship():
 
 def serve():
     server = grpc.server(ThreadPoolExecutor(max_workers=10))
-    spaceship_pb2_grpc.add_SpaceshipServiceServicer_to_server(
+    add_SpaceshipServiceServicer_to_server(
         SpaceshipServiceServicer(), server)
     server.add_insecure_port('[::]:50051')
     server.start()

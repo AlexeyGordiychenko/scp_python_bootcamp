@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import spaceship_pb2 as spaceship__pb2
+from . import spaceship_pb2 as spaceship__pb2
 
 
 class SpaceshipServiceStub(object):
