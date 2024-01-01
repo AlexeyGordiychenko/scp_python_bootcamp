@@ -60,7 +60,9 @@ def validate_spaceship(spaceship):
         print(Spaceship.model_validate_json(MessageToJson(
             spaceship, preserving_proto_field_name=True)).model_dump_json(indent=4))
     except ValidationError as ve:
-        # print(ve.errors())
+        # for error in ve.errors():
+        #     print(error.get('msg', ''))
+        #     print(error.get('input', ''))
         pass
 
 
