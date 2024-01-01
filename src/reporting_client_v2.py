@@ -93,4 +93,8 @@ def run(coordinates):
 
 
 if __name__ == '__main__':
-    run(parse_args())
+    coords = parse_args()
+    if not coords:
+        print('No coordinates provided')
+    else:
+        run(coords)
