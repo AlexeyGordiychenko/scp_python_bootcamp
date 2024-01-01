@@ -2,7 +2,7 @@ import argparse
 import grpc
 from proto.spaceship_pb2 import Coordinates
 from proto.spaceship_pb2_grpc import SpaceshipServiceStub
-from typing import ClassVar
+from typing import ClassVar, Optional
 from pydantic import BaseModel, ValidationError, model_validator
 from google.protobuf.json_format import MessageToJson
 
@@ -20,7 +20,7 @@ class Spaceship(BaseModel):
     length: float
     crew_size: int
     armed: bool
-    officers: list[Officer]
+    officers: Optional[list[OfficerValidator]] = []
 
     checks: ClassVar = {
         # class_: (length_range, crew_size_range, can_be_armed, can_be_hostile)
