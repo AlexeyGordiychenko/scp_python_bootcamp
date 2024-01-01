@@ -3,6 +3,7 @@ import grpc
 from proto.spaceship_pb2 import Coordinates
 from proto.spaceship_pb2_grpc import SpaceshipServiceStub
 import json
+from google.protobuf.json_format import MessageToDict
 
 
 def parse_args():
@@ -28,27 +29,11 @@ def run(coordinates):
 
         stub = SpaceshipServiceStub(channel)
         for spaceship in stub.GetSpaceships(Coordinates(coordinate=coordinates)):
-            message_dict = message_to_dict(spaceship)
-            if 'officers' not in message_dict:
-                message_dict['officers'] = []
-            print(json.dumps(message_dict, indent=4))
-
-
-def message_to_dict(message):
-    # Convert a Protobuf message to a dict
-    message_dict = {}
-    for field, value in message.ListFields():
-        if field.type == field.TYPE_ENUM:
-            message_dict[field.name] = field.enum_type.values_by_number[value].name
-        elif field.type == field.TYPE_MESSAGE:
-            if field.label == field.LABEL_REPEATED:
-                message_dict[field.name] = [message_to_dict(
-                    sub_message) for sub_message in value]
-            else:
-                message_dict[field.name] = message_to_dict(value)
-        else:
-            message_dict[field.name] = value
-    return message_dict
+            dict_msg = MessageToDict(
+                spaceship, preserving_proto_field_name=True)
+            if 'officers' not in dict_msg:
+                dict_msg['officers'] = []
+            print(json.dumps(dict_msg, indent=4))
 
 
 if __name__ == '__main__':
