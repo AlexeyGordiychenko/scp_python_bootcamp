@@ -7,13 +7,13 @@ from pydantic import BaseModel, ValidationError, model_validator
 from google.protobuf.json_format import MessageToJson
 
 
-class Officer(BaseModel):
+class OfficerValidator(BaseModel):
     first_name: str
     last_name: str
     rank: str
 
 
-class Spaceship(BaseModel):
+class SpaceshipValidator(BaseModel):
     alignment: str
     name: str
     class_: str
@@ -57,7 +57,7 @@ class Spaceship(BaseModel):
 # def is_valid_spaceship(data):
 def validate_spaceship(spaceship):
     try:
-        print(Spaceship.model_validate_json(MessageToJson(
+        print(SpaceshipValidator.model_validate_json(MessageToJson(
             spaceship, preserving_proto_field_name=True)).model_dump_json(indent=4))
     except ValidationError as ve:
         # for error in ve.errors():
