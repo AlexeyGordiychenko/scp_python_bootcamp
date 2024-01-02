@@ -75,6 +75,7 @@ class Spaceship(Base):
     armed = Column(Boolean)
     officers = relationship('Officer', backref='spaceship')
     officers_hash = Column(String)
+    # speed = Column(Float)
 
 
 class Officer(Base):
