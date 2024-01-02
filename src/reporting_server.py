@@ -1,4 +1,5 @@
 import csv
+import sys
 import grpc
 from proto.spaceship_pb2 import Spaceship
 from proto.spaceship_pb2_grpc import SpaceshipServiceServicer, add_SpaceshipServiceServicer_to_server
@@ -110,4 +111,7 @@ def serve():
 
 
 if __name__ == '__main__':
+    if len(sys.argv) == 2 and sys.argv[1] == 'test':
+        class SpaceshipServiceServicer(SpaceshipServiceServicer):
+            GetSpaceships = SpaceshipServiceServicer.GetSpaceshipsTest
     serve()
