@@ -42,7 +42,7 @@ class SpaceshipServiceServicer(SpaceshipServiceServicer):
                 class_ = row.get('class_')
                 length = float(row.get('length'))
                 crew_size = int(row.get('crew_size'))
-                armed = bool(row.get('armed'))
+                armed = bool(int(row.get('armed')))
                 officers = [Spaceship.Officer(
                     first_name=first_name, last_name=last_name, rank=rank)
                     for first_name, last_name, rank in [officer.split(' ') for officer in row.get('officers', []).split(';') if officer]]

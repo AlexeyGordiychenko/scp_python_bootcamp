@@ -6,4 +6,4 @@ Ally,Spaceship2,Corvette,80,4,1,John Doe Captain
 Ally,Spaceship3,Cruiser,500,15,1,Rudolph Bruce Commodore;Carl Snyder Leiutenant;Laura Booth Admiral
 Ally,Spaceship4,Destroyer,800,50,1,Clayton Morger Officer;Ashley Adams Captain
 Enemy,EnemySpaceship1,Corvette,80,4,1,Carl Snyder Leiutenant;Nicolas Mcfadden Ensign
-Enemy,EnemySpaceship2,Frigate,300,10,1,Bruce Kinard Captain;Clayton Morger Officer
+Enemy,EnemySpaceship2,Carrier,2500,130,0,Bruce Kinard Captain;Clayton Morger Officer
