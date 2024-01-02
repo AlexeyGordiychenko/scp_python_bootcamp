@@ -8,16 +8,15 @@ from pydantic import BaseModel, ValidationError, model_validator
 from google.protobuf.json_format import MessageToJson
 from sqlalchemy import UniqueConstraint, and_, create_engine, Column, Integer, String, Float, Boolean, ForeignKey, distinct, exists, func, select
 from sqlalchemy.orm import relationship, declarative_base, sessionmaker
+from dotenv import load_dotenv
+import os
 
-Base = declarative_base()
-engine = create_engine(
-    'postgresql://postgres:postgres@localhost:5433/ex02')
-try:
-    Base.metadata.create_all(engine)
-except Exception:
-    print('Error: Cannot connect to the database.')
-    exit(1)
-Session = sessionmaker(bind=engine)
+load_dotenv()
+
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
 
 class OfficerValidator(BaseModel):
@@ -67,6 +66,9 @@ class SpaceshipValidator(BaseModel):
         return self
 
 
+Base = declarative_base()
+
+
 class Spaceship(Base):
     __tablename__ = 'spaceships'
 
@@ -90,6 +92,16 @@ class Officer(Base):
     last_name = Column(String)
     rank = Column(String)
     spaceship_id = Column(Integer, ForeignKey('spaceships.id'))
+
+
+engine = create_engine(
+    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:{POSTGRES_PORT}/{POSTGRES_DB}")
+try:
+    Base.metadata.create_all(engine)
+except Exception:
+    print('Error: Cannot connect to the database.')
+    exit(1)
+Session = sessionmaker(bind=engine)
 
 
 def validate_spaceship(spaceship):
@@ -151,10 +163,6 @@ def parse_args():
 
 
 def run(coordinates):
-    engine = create_engine(
-        'postgresql://postgres:postgres@localhost:5433/ex02')
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
     with grpc.insecure_channel('localhost:50051') as channel:
         # Check if the server is running
         try:
