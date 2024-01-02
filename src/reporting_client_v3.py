@@ -12,7 +12,11 @@ from sqlalchemy.orm import relationship, declarative_base, sessionmaker
 Base = declarative_base()
 engine = create_engine(
     'postgresql://postgres:postgres@localhost:5433/ex02')
-Base.metadata.create_all(engine)
+try:
+    Base.metadata.create_all(engine)
+except Exception:
+    print('Error: Cannot connect to the database.')
+    exit(1)
 Session = sessionmaker(bind=engine)
 
 
