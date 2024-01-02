@@ -164,7 +164,6 @@ def run(coordinates):
             for spaceship in stub.GetSpaceships(Coordinates(coordinate=coordinates)):
                 validated_spaceship = validate_spaceship(spaceship)
                 if validated_spaceship and not spaceship_exists(session, validated_spaceship.name, validated_spaceship.officers_hash):
-                    print('added')
                     session.add(validated_spaceship)
             session.commit()
 
