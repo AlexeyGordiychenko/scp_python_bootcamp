@@ -1,12 +1,12 @@
 import argparse
-import json
 import grpc
 from proto.spaceship_pb2 import Coordinates
 from proto.spaceship_pb2_grpc import SpaceshipServiceStub
 from typing import ClassVar, Optional
 from pydantic import BaseModel, ValidationError, model_validator
 from google.protobuf.json_format import MessageToJson
-from sqlalchemy import UniqueConstraint, and_, create_engine, Column, Integer, String, Float, Boolean, ForeignKey, distinct, exists, func, select
+from sqlalchemy import (and_, create_engine, Column, Integer, String,
+                        Float, Boolean, ForeignKey, distinct, exists, func, select)
 from sqlalchemy.orm import relationship, declarative_base, sessionmaker
 from dotenv import load_dotenv
 import os
