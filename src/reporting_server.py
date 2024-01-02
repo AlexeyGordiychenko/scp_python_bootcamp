@@ -43,9 +43,12 @@ def get_random_spaceship_name(alignment):
         return 'Unknown'
 
 
-def get_random_officers():
-    return [Spaceship.Officer(first_name=names.get_first_name(), last_name=names.get_last_name(
-    ), rank=random.choice(officer_ranks)) for _ in range(random.randint(0, 10))]
+def get_random_officers(alignment):
+    if alignment == Spaceship.Ally or alignment == Spaceship.Enemy and not random.randint(0, 5):
+        return [Spaceship.Officer(first_name=names.get_first_name(), last_name=names.get_last_name(
+        ), rank=random.choice(officer_ranks)) for _ in range(random.randint(0, 10))]
+    else:
+        return []
 
 
 def generate_random_spaceship():
@@ -56,7 +59,7 @@ def generate_random_spaceship():
     length = random.uniform(10, 30000.0)
     crew_size = random.randint(2, 800)
     armed = random.choice([True, False])
-    officers = get_random_officers() if alignment == Spaceship.Ally else []
+    officers = get_random_officers(alignment)
 
     return Spaceship(
         alignment=alignment,
