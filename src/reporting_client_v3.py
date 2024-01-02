@@ -106,9 +106,9 @@ def validate_spaceship(spaceship):
             spaceship_model.officers)
         return spaceship_model
     except ValidationError as ve:
-        for error in ve.errors():
-            print(error.get('msg', ''))
-            print(error.get('input', ''))
+        # for error in ve.errors():
+        #     print(error.get('msg', ''))
+        #     print(error.get('input', ''))
         pass
 
 
