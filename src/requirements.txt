@@ -1,0 +1,11 @@
+alembic~=1.13.1
+grpcio~=1.60.0
+grpcio-tools~=1.60.0
+names~=0.3.0
+protobuf~=4.25.1
+psycopg2~=2.9.9
+pydantic~=2.5.3
+pytest~=7.4.4
+python-dotenv~=1.0.0
+randomname~=0.2.1
+SQLAlchemy~=2.0.24
