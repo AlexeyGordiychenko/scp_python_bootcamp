@@ -1,3 +1,4 @@
+import csv
 import grpc
 from proto.spaceship_pb2 import Spaceship
 from proto.spaceship_pb2_grpc import SpaceshipServiceServicer, add_SpaceshipServiceServicer_to_server
@@ -31,6 +32,29 @@ class SpaceshipServiceServicer(SpaceshipServiceServicer):
             f'Scanning coordinates:{request.coordinate}')
         for _ in range(random.randint(1, 10)):
             yield generate_random_spaceship()
+
+    def GetSpaceshipsTest(self, request, context):
+        with open('spaceships.csv', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                alignment = row.get('alignment')
+                name = row.get('name')
+                class_ = row.get('class_')
+                length = float(row.get('length'))
+                crew_size = int(row.get('crew_size'))
+                armed = bool(row.get('armed'))
+                officers = [Spaceship.Officer(
+                    first_name=first_name, last_name=last_name, rank=rank)
+                    for first_name, last_name, rank in [officer.split(' ') for officer in row.get('officers', []).split(';') if officer]]
+
+                yield Spaceship(
+                    alignment=alignment,
+                    name=name,
+                    class_=class_,
+                    length=length,
+                    crew_size=crew_size,
+                    armed=armed,
+                    officers=officers)
 
 
 def get_random_spaceship_name(alignment):

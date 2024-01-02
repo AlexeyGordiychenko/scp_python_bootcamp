@@ -1,0 +1,9 @@
+alignment,name,class_,length,crew_size,armed,officers
+Ally,Spaceship1,Corvette,80,4,1,John Doe Captain;Jane Doe Officer
+Ally,Spaceship1,Frigate,300,10,1,Jane Doe Officer;John Doe Captain
+Ally,Spaceship2,Cruiser,500,15,1,John Doe Captain;Jane Doe Officer
+Ally,Spaceship2,Corvette,80,4,1,John Doe Captain
+Ally,Spaceship3,Cruiser,500,15,1,Rudolph Bruce Commodore;Carl Snyder Leiutenant;Laura Booth Admiral
+Ally,Spaceship4,Destroyer,800,50,1,Clayton Morger Officer;Ashley Adams Captain
+Enemy,EnemySpaceship1,Corvette,80,4,1,Carl Snyder Leiutenant;Nicolas Mcfadden Ensign
+Enemy,EnemySpaceship2,Frigate,300,10,1,Bruce Kinard Captain;Clayton Morger Officer
