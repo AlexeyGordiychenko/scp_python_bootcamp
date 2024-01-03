@@ -1,0 +1,92 @@
+[
+    {
+        "question": "You see a teammate struggling with a task at work. What do you do?",
+        "choices": [
+            "Offer your help and provide guidance.",
+            "Focus on your own tasks.",
+            "Inform your supervisor about the situation."
+        ],
+        "answer": 1
+    },
+    {
+        "question": "A family member is facing a difficult challenge. How do you respond?",
+        "choices": [
+            "Suggest practical solutions for their problems.",
+            "Advise them to face the challenge head-on and get over it.",
+            "Provide emotional support and comfort."
+        ],
+        "answer": 3
+    },
+    {
+        "question": "You encounter a homeless person asking for help. How do you respond?",
+        "choices": [
+            "Continue on your way without intervening.",
+            "Assist them directly or find someone capable of providing help.",
+            "Feel sorry for their situation but do nothing."
+        ],
+        "answer": 2
+    },
+    {
+        "question": "How do you cope with failure or setbacks in your life?",
+        "choices": [
+            "Learn from the experience and seek support if necessary.",
+            "Blame others or external factors for the failure.",
+            "Internalize the experience and deal with it on your own."
+        ],
+        "answer": 1
+    },
+    {
+        "question": "You discover a lost phone in a public place. What's your next move?",
+        "choices": [
+            "Try to find the owner using the available information.",
+            "Leave it where it is.",
+            "Keep it."
+        ],
+        "answer": 1
+    },
+    {
+        "question": "How do you perceive and respond to the emotions of others?",
+        "choices": [
+            "Concentrate on your own emotions and needs.",
+            "Strive to understand and empathize with their feelings.",
+            "Struggle to emotionally connect with others."
+        ],
+        "answer": 2
+    },
+    {
+        "question": "You find out a trusted friend has lied to you. What's your reaction?",
+        "choices": [
+            "Respond with anger and consider ending the friendship.",
+            "Dismiss it without confrontation and move on.",
+            "Confront them openly and look for a resolution."
+        ],
+        "answer": 3
+    },
+    {
+        "question": "How do you navigate situations with uncertain outcomes?",
+        "choices": [
+            "Stay composed, evaluate the situation, and act accordingly.",
+            "Act impulsively to eliminate the uncertainty.",
+            "Seek advice from others due to anxiety."
+        ],
+        "answer": 1
+    },
+    {
+        "question": "When facing an ethical issue, what influences your decision?",
+        "choices": [
+            "Focus on personal benefit and interests.",
+            "Uphold your moral principles and consider the wider impact.",
+            "Make decisions based on immediate emotional response."
+        ],
+        "answer": 2
+    },
+    {
+        "question": "You come across a rare artifact while hiking. What's your first reaction?",
+        "choices": [
+            "Admire its uniqueness and leave it where it is.",
+            "Take it home for personal collection.",
+            "Report it to the authorities or relevant organizations."
+        ],
+        "answer": 3
+    }
+]
