@@ -46,7 +46,7 @@ class VKTest():
             - 'replicant' if the subject is determined to be a replicant.
             - 'human' if the subject is determined to be a human.
         """
-        if self.questionnaire.questions is None:
+        if not self.answers:
             return
         if sum(self.answers)/len(self.answers) > 0.8\
                 and min(self.measurements.respiration) - max(self.measurements.respiration) <= 2\
