@@ -41,3 +41,10 @@ def test_human(monkeypatch):
         os.path.dirname(__file__), '..', 'questions.json'))
     assert test.run() == True
     assert test.result() == 'human'
+
+
+def test_no_questions():
+    test = VKTest(os.path.join(
+        os.path.dirname(__file__), '..', 'no file.json'))
+    assert test.run() == False
+    assert test.result() == None
