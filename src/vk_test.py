@@ -27,7 +27,7 @@ class VKTest():
             bool: True if at least one answer was collected, False otherwise.
         """
         while self.questionnaire.next():
-            if self.questionnaire.choices and self.questionnaire.answer:
+            if self.questionnaire.question and self.questionnaire.choices and self.questionnaire.answer:
                 print(f'{COLOR_GREEN}{self.questionnaire.question}{COLOR_RESET}')
                 print('\n'.join([f'\t{idx+1}. {choice}' for idx,
                                 choice in enumerate(self.questionnaire.choices)]))
