@@ -2,7 +2,7 @@ from questionnaire import Questionnaire
 from measurements import Measurements
 from user_input import user_input
 
-COLOR_GREEN = '\033[33m'
+COLOR_YELLOW = '\033[33m'
 COLOR_RESET = '\033[0m'
 
 
@@ -28,7 +28,7 @@ class VKTest():
         """
         while self.questionnaire.next():
             if self.questionnaire.question and self.questionnaire.choices and self.questionnaire.answer:
-                print(f'{COLOR_GREEN}{self.questionnaire.question}{COLOR_RESET}')
+                print(f'{COLOR_YELLOW}{self.questionnaire.question}{COLOR_RESET}')
                 print('\n'.join([f'\t{idx+1}. {choice}' for idx,
                                 choice in enumerate(self.questionnaire.choices)]))
                 self.answers.append(1 if user_input(
