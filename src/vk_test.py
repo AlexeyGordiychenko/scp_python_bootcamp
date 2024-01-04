@@ -8,11 +8,24 @@ COLOR_RESET = '\033[0m'
 
 class VKTest():
     def __init__(self, filename):
+        """
+        Initializes a new instance of the class with a questionnaire and
+        measurements instances and an empty list for answers.
+
+        :parameters:
+            filename: The name of the file with questions.
+        """
         self.questionnaire = Questionnaire(filename)
         self.measurements = Measurements()
         self.answers = []
 
     def run(self):
+        """
+        Run the questionnaire and collect the user's answers and measurements.
+
+        :returns:
+            bool: True if at least one answer was collected, False otherwise.
+        """
         while self.questionnaire.next():
             if self.questionnaire.choices and self.questionnaire.answer:
                 print(f'{COLOR_GREEN}{self.questionnaire.question}{COLOR_RESET}')
@@ -25,6 +38,14 @@ class VKTest():
         return len(self.answers) > 0
 
     def result(self):
+        """
+        Determines whether the subject is a replicant or a human based on the
+        answers and measurements collected during the questionnaire.
+
+        :returns:
+            - 'replicant' if the subject is determined to be a replicant.
+            - 'human' if the subject is determined to be a human.
+        """
         if self.questionnaire.questions is None:
             return
         if sum(self.answers)/len(self.answers) > 0.8\
