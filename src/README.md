@@ -21,6 +21,12 @@ Run tests:
 ```
 pytest
 ```
+Check coverage:
+```
+coverage run -m pytest
+coverage html
+open htmlcov/index.html
+```
 
 ## EX02
 
