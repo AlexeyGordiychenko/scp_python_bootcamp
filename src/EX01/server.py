@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel, HttpUrl, Field
 from uuid import uuid4, UUID
@@ -5,6 +6,9 @@ from typing import List, Dict, Literal
 from aiohttp import ClientSession, ClientTimeout
 import asyncio
 import uvicorn
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(levelname)-10s%(message)s')
 
 
 class Task(BaseModel):
@@ -26,7 +30,7 @@ async def fetch_url(session, url, task_id):
         async with session.get(str(url), timeout=ClientTimeout(total=5)) as response:
             tasks[task_id]["result"][url] = response.status
     except Exception as e:
-        print(f"Error fetching {url}: {str(e)}")
+        logging.info(f"Error fetching {url}: {str(e)}")
         tasks[task_id]["result"][url] = -1
 
 
