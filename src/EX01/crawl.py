@@ -26,4 +26,5 @@ async def main(urls):
 
 if __name__ == '__main__':
     urls = sys.argv[1:]
-    asyncio.run(main(urls))
+    if urls:
+        asyncio.run(main(urls))
