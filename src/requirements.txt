@@ -1,0 +1,6 @@
+aiohttp~=3.9.1
+aioredis~=2.0.1
+fastapi~=0.108.0
+pydantic~=2.5.3
+python-dotenv~=1.0.0
+uvicorn~=0.25.0
