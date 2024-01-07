@@ -5,5 +5,6 @@ setup(name='Calculator',
       author='elidacon',
       description='Simple calculator module for Python written in C',
       ext_modules=[
-          Extension('calculator', sources=['calculator.c'])
+          Extension('calculator', sources=['calculator.c']),
+          Extension('calculator_float', sources=['calculator_float.c']),
       ])
