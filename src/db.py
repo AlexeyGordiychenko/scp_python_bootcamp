@@ -1,17 +1,18 @@
-import json
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, event
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
-engine = create_engine('sqlite:///game.db')
-Session = sessionmaker(bind=engine)
 
-association_table = Table('linked_locations', Base.metadata,
-                          Column('location_id', Integer, ForeignKey(
-                              'locations.id'), primary_key=True),
-                          Column('linked_location_id', Integer, ForeignKey(
-                              'locations.id'), primary_key=True)
-                          )
+linked_locations_association = Table('linked_locations', Base.metadata,
+                                     Column('location_id', Integer, ForeignKey(
+                                         'locations.id'), primary_key=True),
+                                     Column('linked_location_id', Integer, ForeignKey(
+                                         'locations.id'), primary_key=True)
+                                     )
+
+
+class LinkedLocations(Base):
+    __tablename__ = 'linked_locations'
 
 
 class NPC(Base):
@@ -31,8 +32,11 @@ class Enemy(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     description = Column(String)
+    location_id = Column(Integer, ForeignKey('locations.id'))
     level = Column(Integer)
     loot = Column(String)
+
+    location = relationship("Location", back_populates="enemies")
 
 
 class Location(Base):
@@ -43,12 +47,13 @@ class Location(Base):
 
     linked_locations = relationship(
         "Location",
-        secondary=association_table,
-        primaryjoin=id == association_table.c.location_id,
-        secondaryjoin=id == association_table.c.linked_location_id,
+        secondary=linked_locations_association,
+        primaryjoin=id == linked_locations_association.c.location_id,
+        secondaryjoin=id == linked_locations_association.c.linked_location_id,
         backref="linked_to"
     )
     npcs = relationship('NPC', back_populates='location')
+    enemies = relationship('Enemy', back_populates='location')
 
 
 class Dialog(Base):
@@ -80,69 +85,25 @@ class Character(Base):
     __tablename__ = 'characters'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
+    hp = Column(Integer)
+    level = Column(Integer)
+    location_id = Column(Integer, ForeignKey('locations.id'))
+
+    items = relationship('Inventory', back_populates='character')
+
+    def __init__(self, id: int, name: str):
+        self.id = id
+        self.name: str = name
+        self.hp: int = 10
+        self.level = 1
+        self.location_id = 1
 
 
-def get_json_data(filename):
-    with open(filename, 'r') as file:
-        return json.load(file)
+class Inventory(Base):
+    __tablename__ = 'inventory'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    character_id = Column(Integer, ForeignKey('characters.id'))
+    item = Column(String)
+    count = Column(Integer)
 
-
-def load_npcs(session):
-    for npc_data in get_json_data('npcs.json'):
-        npc = NPC(**npc_data)
-        session.add(npc)
-    session.commit()
-
-
-def load_enemies(session):
-    for enemy_data in get_json_data('enemies.json'):
-        enemy = Enemy(**enemy_data)
-        session.add(enemy)
-    session.commit()
-
-
-def load_dialogs(session):
-    for dialog_entry in get_json_data('dialogs.json'):
-        dialog = Dialog(
-            id=dialog_entry['id'], stage=dialog_entry['stage'], npc_text=dialog_entry['npc'])
-        session.add(dialog)
-        session.flush()  # To ensure dialog has an ID
-
-        for response in dialog_entry['player']:
-            player_response = PlayerResponse(
-                dialog_id=dialog.id,
-                stage_id=dialog.stage,
-                text=response['text'],
-                next_stage_id=response.get('next_stage')
-            )
-            session.add(player_response)
-
-    session.commit()
-
-
-def load_locations(session):
-    locations_data = get_json_data('locations.json')
-    location_instances = {}
-    for location in locations_data:
-        location_instance = Location(
-            id=location['id'], name=location['name'], description=location['description'])
-        session.add(location_instance)
-        session.flush()  # To ensure each location instance has an ID
-        location_instances[location['id']] = location_instance
-
-    for location in locations_data:
-        current_location = location_instances[location['id']]
-        for linked_location_id in location['linked_locations']:
-            linked_location = location_instances[linked_location_id]
-            current_location.linked_locations.append(linked_location)
-
-    session.commit()
-
-
-Base.metadata.create_all(engine)
-
-session = Session()
-load_npcs(session)
-load_enemies(session)
-load_dialogs(session)
-load_locations(session)
+    character = relationship('Character', back_populates='items')
