@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "name": "Troll",
+        "description": "Troll which lives outside the Village",
+        "location_id": 2,
+        "level": 1,
+        "loot": "trinket"
+    },
+    {
+        "id": 2,
+        "name": "Goblin",
+        "description": "Goblin which lives outside the Village",
+        "location_id": 2,
+        "level": 1,
+        "loot": "animal skin"
+    }
+]

@@ -1,0 +1,61 @@
+[
+    {
+        "id": 1,
+        "stage": 1,
+        "npc": "Hello, stranger",
+        "player": [
+            {
+                "text": "Hello",
+                "next_stage": 2
+            },
+            {
+                "text": "Who are you?",
+                "next_stage": 3
+            }
+        ]
+    },
+    {
+        "id": 1,
+        "stage": 2,
+        "npc": "What can I do for you?",
+        "player": [
+            {
+                "text": "I'm just walking by",
+                "next_stage": 4
+            },
+            {
+                "text": "Nothing, I need to go"
+            }
+        ]
+    },
+    {
+        "id": 1,
+        "stage": 3,
+        "npc": "I'm the mayor of this town",
+        "player": [
+            {
+                "text": "Oh, good to know!"
+            }
+        ]
+    },
+    {
+        "id": 1,
+        "stage": 4,
+        "npc": "Ok, good luck!",
+        "player": [
+            {
+                "text": "Good luck!"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "stage": 1,
+        "npc": "Clucking",
+        "player": [
+            {
+                "text": "aww..."
+            }
+        ]
+    }
+]

@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "name": "Mayor John Travis",
+        "description": "Mayor of the Town",
+        "dialog_id": 1,
+        "location_id": 1
+    },
+    {
+        "id": 2,
+        "name": "Little rabbit",
+        "description": "Small rabbit which lives in the Village",
+        "dialog_id": 2,
+        "location_id": 2
+    }
+]
