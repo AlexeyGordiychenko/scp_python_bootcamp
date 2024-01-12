@@ -1,0 +1,90 @@
+{
+    "Characters": {
+        "Elf": [
+            [
+                "elf_first_name1",
+                "elf_first_name2",
+                "elf_first_name3"
+            ],
+            [
+                "elf_last_name1",
+                "elf_last_name2",
+                "elf_last_name3"
+            ]
+        ],
+        "Ork": [
+            [
+                "ork_first_name1",
+                "ork_first_name2",
+                "ork_first_name3"
+            ],
+            [
+                "ork_last_name1",
+                "ork_last_name2",
+                "ork_last_name3"
+            ]
+        ],
+        "Human": [
+            [
+                "human_first_name1",
+                "human_first_name2",
+                "human_first_name3"
+            ],
+            [
+                "human_last_name1",
+                "human_last_name2",
+                "human_last_name3"
+            ]
+        ],
+        "Dark Elf": [
+            [
+                "dark_elf_first_name1",
+                "dark_elf_first_name2",
+                "dark_elf_first_name3"
+            ],
+            [
+                "dark_elf_last_name1",
+                "dark_elf_last_name2",
+                "dark_elf_last_name3"
+            ]
+        ]
+    },
+    "Items": {
+        "Weapons": [
+            [
+                "weapon_adjective1",
+                "weapon_adjective2",
+                "weapon_adjective3"
+            ],
+            [
+                "weapon_name1",
+                "weapon_name2",
+                "weapon_name3"
+            ]
+        ],
+        "Potions": [
+            [
+                "potion_adjective1",
+                "potion_adjective2",
+                "potion_adjective3"
+            ],
+            [
+                "potion_name1",
+                "potion_name2",
+                "potion_name3"
+            ]
+        ],
+        "Clothes": [
+            [
+                "clothes_adjective1",
+                "clothes_adjective2",
+                "clothes_adjective3"
+            ],
+            [
+                "clothes_name1",
+                "clothes_name2",
+                "clothes_name3"
+            ]
+        ]
+    }
+}

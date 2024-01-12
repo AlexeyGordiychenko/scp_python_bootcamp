@@ -17,3 +17,7 @@ back = "Back"
 fight_succ = "You've defeated the {enemy}!\nYour level is increased by 1.\nCurrent level is {level}."
 fight_fail = "{enemy} has defeated you.\nYour health is reduced by 1.\nCurrent health is {hp}."
 fight_die = "You died."
+
+gen_welcome = "This is a bot to generate names for various characters and items."
+gen_choose_type = "Choose a type:"
+gen_choose_category = "Choose a category:"
