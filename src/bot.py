@@ -23,7 +23,6 @@ if TOKEN is None:
     raise ValueError('No token provided')
 
 router = Router()
-session = db.Session()
 
 
 class MenuStates(StatesGroup):
@@ -32,8 +31,9 @@ class MenuStates(StatesGroup):
 
 @router.message(Command("start"))
 async def start_command(message: Message):
-    existing_character = session.execute(select(db.Character.name).where(
-        db.Character.id == message.from_user.id)).scalars().first()
+    with db.Session() as session:
+        existing_character = session.execute(select(db.Character.name).where(
+            db.Character.id == message.from_user.id)).scalars().first()
 
     if existing_character:
         await message.answer(msg_text.welcome.format(name=existing_character), reply_markup=kb.main_menu)
@@ -54,8 +54,9 @@ async def input_character_name(clbck: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "get_location")
 async def get_location(callback_query: CallbackQuery):
-    current_location = session.execute(select(db.Location.name).join(db.Character).where(
-        db.Character.id == callback_query.from_user.id)).scalars().first()
+    with db.Session() as session:
+        current_location = session.execute(select(db.Location.name).join(db.Character).where(
+            db.Character.id == callback_query.from_user.id)).scalars().first()
 
     if not current_location:
         current_location = 'Unknown'
@@ -65,8 +66,9 @@ async def get_location(callback_query: CallbackQuery):
 
 @router.callback_query(F.data == "get_hp")
 async def get_hp(callback_query: CallbackQuery):
-    current_health = session.execute(select(db.Character.hp).where(
-        db.Character.id == callback_query.from_user.id)).scalars().first()
+    with db.Session() as session:
+        current_health = session.execute(select(db.Character.hp).where(
+            db.Character.id == callback_query.from_user.id)).scalars().first()
     if not current_health:
         current_health = 'Unknown'
     # await bot.send_message(callback_query.from_user.id, msg_text.current_health.format(health=current_health), reply_markup=kb.main_menu)
@@ -75,20 +77,23 @@ async def get_hp(callback_query: CallbackQuery):
 
 @router.callback_query(F.data == "get_inventory")
 async def get_inventory(callback_query: CallbackQuery):
-    current_character = session.execute(select(db.Character).where(
-        db.Character.id == callback_query.from_user.id)).scalars().first()
-    inventory_msg = '\n'.join(
-        [f'{item.item}: {item.count}' for item in current_character.items])
-    # await bot.send_message(callback_query.from_user.id, f'{msg_text.current_inventory}\n{inventory_msg}', reply_markup=kb.main_menu)
+    with db.Session() as session:
+        current_character = session.execute(select(db.Character).where(
+            db.Character.id == callback_query.from_user.id)).scalars().first()
+        inventory_msg = '\n'.join(
+            [f'{item.item}: {item.count}' for item in current_character.items])
+        # await bot.send_message(callback_query.from_user.id, f'{msg_text.current_inventory}\n{inventory_msg}', reply_markup=kb.main_menu)
     await callback_query.message.edit_text(f'{msg_text.current_inventory}\n{inventory_msg}', reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "change_location")
 async def change_location(callback_query: CallbackQuery):
-    current_location = session.execute(select(db.Location).join(db.Character).where(
-        db.Character.id == callback_query.from_user.id)).scalars().first()
+    with db.Session() as session:
+        current_location = session.execute(select(db.Location).join(db.Character).where(
+            db.Character.id == callback_query.from_user.id)).scalars().first()
+        linked_locations = current_location.linked_locations
     builder = InlineKeyboardBuilder()
-    for location in current_location.linked_locations:
+    for location in linked_locations:
         builder.button(text=location.name,
                        callback_data=f'set_location:{location.id}:{location.name}')
     builder.button(text=msg_text.back, callback_data='main_menu')
@@ -101,11 +106,12 @@ async def change_location(callback_query: CallbackQuery):
 @router.callback_query(F.data.startswith("set_location:"))
 async def set_location(callback_query: CallbackQuery):
     _, location_id, location_name = callback_query.data.split(':')
-    character = session.execute(select(db.Character).where(
-        db.Character.id == callback_query.from_user.id)).scalars().first()
-    if character:
-        character.location_id = location_id
-        session.commit()
+    with db.Session() as session:
+        character = session.execute(select(db.Character).where(
+            db.Character.id == callback_query.from_user.id)).scalars().first()
+        if character:
+            character.location_id = location_id
+            session.commit()
 
     # await bot.send_message(callback_query.from_user.id, msg_text.change_location_succ.format(location=location_name), reply_markup=kb.main_menu)
     await callback_query.message.edit_text(msg_text.change_location_succ.format(location=location_name), reply_markup=kb.main_menu)
@@ -113,9 +119,10 @@ async def set_location(callback_query: CallbackQuery):
 
 @router.callback_query(F.data == "get_npcs")
 async def get_npcs(callback_query: CallbackQuery):
-    current_location = session.execute(select(db.Location).join(db.Character).where(
-        db.Character.id == callback_query.from_user.id)).scalars().first()
-    npcs = current_location.npcs
+    with db.Session() as session:
+        current_location = session.execute(select(db.Location).join(db.Character).where(
+            db.Character.id == callback_query.from_user.id)).scalars().first()
+        npcs = current_location.npcs
     if npcs:
         builder = InlineKeyboardBuilder()
         for npc in npcs:
@@ -133,10 +140,11 @@ async def get_npcs(callback_query: CallbackQuery):
 @router.callback_query(F.data.startswith("talk_to_npc:"))
 async def talk_to_npc(callback_query: CallbackQuery):
     _, npc_id, npc_name, dialog_id, stage = callback_query.data.split(':')
-    npc_text = session.execute(select(db.Dialog.npc_text).where(
-        db.Dialog.id == dialog_id, db.Dialog.stage == stage)).scalars().first()
-    responses = session.execute(select(db.PlayerResponse).where(
-        db.PlayerResponse.dialog_id == dialog_id, db.PlayerResponse.stage_id == stage)).scalars().all()
+    with db.Session() as session:
+        npc_text = session.execute(select(db.Dialog.npc_text).where(
+            db.Dialog.id == dialog_id, db.Dialog.stage == stage)).scalars().first()
+        responses = session.execute(select(db.PlayerResponse).where(
+            db.PlayerResponse.dialog_id == dialog_id, db.PlayerResponse.stage_id == stage)).scalars().all()
     builder = InlineKeyboardBuilder()
     for response in responses:
         if response.next_stage_id:
@@ -170,21 +178,22 @@ async def get_enemies(callback_query: CallbackQuery):
 @router.callback_query(F.data.startswith("fight:"))
 async def fight(callback_query: CallbackQuery):
     _, enemy_id, enemy_name, enemy_level = callback_query.data.split(':')
-    character = session.execute(select(db.Character).where(
-        db.Character.id == callback_query.from_user.id)).scalars().first()
+    with db.Session() as session:
+        character = session.execute(select(db.Character).where(
+            db.Character.id == callback_query.from_user.id)).scalars().first()
 
-    character_total = randint(1, 6) + int(character.level)
-    enemy_total = randint(1, 6) + int(enemy_level)
+        character_total = randint(1, 6) + int(character.level)
+        enemy_total = randint(1, 6) + int(enemy_level)
 
-    if character_total >= enemy_total:
-        character.level += 1
-        result_text = msg_text.fight_succ.format(
-            enemy=enemy_name, level=character.level)
-    else:
-        character.hp -= 1
-        result_text = msg_text.fight_fail.format(
-            enemy=enemy_name, hp=character.hp)
-    session.commit()
+        if character_total >= enemy_total:
+            character.level += 1
+            result_text = msg_text.fight_succ.format(
+                enemy=enemy_name, level=character.level)
+        else:
+            character.hp -= 1
+            result_text = msg_text.fight_fail.format(
+                enemy=enemy_name, hp=character.hp)
+        session.commit()
     buttons = await get_buttons_for_enemies(callback_query.from_user.id)
     await callback_query.message.edit_text(f"{result_text}\n{msg_text.pick_enemy}", reply_markup=buttons)
 
@@ -193,25 +202,27 @@ async def fight(callback_query: CallbackQuery):
 async def process_name(message: Message, state: FSMContext):
     name = message.text
     new_character = db.Character(id=message.from_user.id, name=name)
-    session.add(new_character)
-    session.commit()
+    with db.Session() as session:
+        session.add(new_character)
+        session.commit()
     await message.answer(msg_text.create_succ, reply_markup=kb.main_menu)
     # await message.edit_text(msg_text.create_succ, reply_markup=kb.main_menu)
 
 
 async def get_buttons_for_enemies(user_id: int) -> InlineKeyboardMarkup:
-    current_location = session.execute(select(db.Location).join(db.Character).where(
-        db.Character.id == user_id)).scalars().first()
-    enemies = current_location.enemies
-    builder = InlineKeyboardBuilder()
+    with db.Session() as session:
+        current_location = session.execute(select(db.Location).join(db.Character).where(
+            db.Character.id == user_id)).scalars().first()
+        enemies = current_location.enemies
     if enemies:
+        print('enemies found')
+        builder = InlineKeyboardBuilder()
         for enemy in enemies:
             builder.button(text=enemy.name,
                            callback_data=f'fight:{enemy.id}:{enemy.name}:{enemy.level}')
         builder.button(text=msg_text.back, callback_data='main_menu')
         builder.adjust(1)
-
-    return builder.as_markup()
+        return builder.as_markup()
 
 
 async def main() -> None:
