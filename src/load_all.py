@@ -1,11 +1,6 @@
 import json
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from db import (Base, Location, NPC, Enemy,
-                Dialog, PlayerResponse, LinkedLocations)
-
-engine = create_engine('sqlite:///game.db')
-Session = sessionmaker(bind=engine)
+                Dialog, PlayerResponse, LinkedLocations, engine, Session)
 
 
 def get_json_data(filename):

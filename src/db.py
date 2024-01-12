@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 Base = declarative_base()
+engine = create_engine('sqlite:///game.db')
+Session = sessionmaker(bind=engine)
 
 linked_locations_association = Table('linked_locations', Base.metadata,
                                      Column('location_id', Integer, ForeignKey(
