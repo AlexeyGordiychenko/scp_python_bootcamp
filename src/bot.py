@@ -95,7 +95,7 @@ async def change_location(callback_query: CallbackQuery):
     builder = InlineKeyboardBuilder()
     for location in linked_locations:
         builder.button(text=location.name,
-                       callback_data=f'set_location:{location.id}:{location.name}')
+                       callback_data=f'set_location:{location.id}:{location.name}:{location.description}')
     builder.button(text=msg_text.back, callback_data='main_menu')
     builder.adjust(2)
 
@@ -105,7 +105,8 @@ async def change_location(callback_query: CallbackQuery):
 
 @router.callback_query(F.data.startswith("set_location:"))
 async def set_location(callback_query: CallbackQuery):
-    _, location_id, location_name = callback_query.data.split(':')
+    _, location_id, location_name, location_desc = callback_query.data.split(
+        ':')
     with db.Session() as session:
         character = session.execute(select(db.Character).where(
             db.Character.id == callback_query.from_user.id)).scalars().first()
@@ -114,7 +115,7 @@ async def set_location(callback_query: CallbackQuery):
             session.commit()
 
     # await bot.send_message(callback_query.from_user.id, msg_text.change_location_succ.format(location=location_name), reply_markup=kb.main_menu)
-    await callback_query.message.edit_text(msg_text.change_location_succ.format(location=location_name), reply_markup=kb.main_menu)
+    await callback_query.message.edit_text(msg_text.change_location_succ.format(location=location_name, desc=location_desc), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_npcs")
