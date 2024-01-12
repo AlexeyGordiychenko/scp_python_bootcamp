@@ -21,7 +21,6 @@ class NPC(Base):
     __tablename__ = 'npcs'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    description = Column(String)
     location_id = Column(Integer, ForeignKey('locations.id'))
     dialog_id = Column(Integer, ForeignKey('dialogs.id'))
 
@@ -33,7 +32,6 @@ class Enemy(Base):
     __tablename__ = 'enemies'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    description = Column(String)
     location_id = Column(Integer, ForeignKey('locations.id'))
     level = Column(Integer)
     loot = Column(String)
