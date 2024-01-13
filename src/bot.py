@@ -83,7 +83,7 @@ async def get_inventory(callback_query: CallbackQuery):
         inventory_msg = '\n'.join(
             [f'{item.item}: {item.count}' for item in current_character.items])
         # await bot.send_message(callback_query.from_user.id, f'{msg_text.current_inventory}\n{inventory_msg}', reply_markup=kb.main_menu)
-    await callback_query.message.edit_text(f'{msg_text.current_inventory}\n{inventory_msg}', reply_markup=kb.main_menu)
+    await callback_query.message.edit_text(f'{msg_text.current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "change_location")
@@ -178,7 +178,8 @@ async def get_enemies(callback_query: CallbackQuery):
 
 @router.callback_query(F.data.startswith("fight:"))
 async def fight(callback_query: CallbackQuery):
-    _, enemy_id, enemy_name, enemy_level = callback_query.data.split(':')
+    _, enemy_id, enemy_name, enemy_level, enemy_loot = callback_query.data.split(
+        ':')
     with db.Session() as session:
         character = session.execute(select(db.Character).where(
             db.Character.id == callback_query.from_user.id)).scalars().first()
@@ -188,8 +189,16 @@ async def fight(callback_query: CallbackQuery):
 
         if character_total >= enemy_total:
             character.level += 1
+            if enemy_loot:
+                item = session.execute(select(db.Inventory).where(
+                    db.Inventory.character_id == callback_query.from_user.id, db.Inventory.item == enemy_loot)).scalars().first()
+                if item:
+                    item.count += 1
+                else:
+                    session.add(db.Inventory(
+                        character_id=callback_query.from_user.id, item=enemy_loot, count=1))
             result_text = msg_text.fight_succ.format(
-                enemy=enemy_name, level=character.level)
+                enemy=enemy_name, level=character.level, loot=enemy_loot)
         else:
             character.hp -= 1
             result_text = msg_text.fight_fail.format(
@@ -220,7 +229,7 @@ async def get_buttons_for_enemies(user_id: int) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         for enemy in enemies:
             builder.button(text=enemy.name,
-                           callback_data=f'fight:{enemy.id}:{enemy.name}:{enemy.level}')
+                           callback_data=f'fight:{enemy.id}:{enemy.name}:{enemy.level}:{enemy.loot}')
         builder.button(text=msg_text.back, callback_data='main_menu')
         builder.adjust(1)
         return builder.as_markup()

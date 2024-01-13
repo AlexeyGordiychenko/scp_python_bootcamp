@@ -14,7 +14,7 @@ pick_enemy = "Which enemy do you want to fight:"
 no_enemies_in_location = "There are no enemies in this location."
 choose_action = "Choose an action:"
 back = "Back"
-fight_succ = "You've defeated the {enemy}!\nYour level is increased by 1.\nCurrent level is {level}."
+fight_succ = "You've defeated the {enemy}!\nYour level is increased by 1.\nCurrent level is {level}.\nYou've received 1 {loot}."
 fight_fail = "{enemy} has defeated you.\nYour health is reduced by 1.\nCurrent health is {hp}."
 fight_die = "You died."
 
