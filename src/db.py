@@ -102,6 +102,12 @@ class Character(Base):
         self.hp: int = 10
         self.level = 1
         self.location_id = 1
+        self.items = [Inventory(item='Rusty Sword', count=1)]
+        with Session() as session:
+            default_location = session.execute(select(Location).where(
+                Location.id == 1)).scalars().first()
+        if default_location:
+            self.location = default_location
 
 
 class Inventory(Base):
