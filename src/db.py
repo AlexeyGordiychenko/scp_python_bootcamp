@@ -109,6 +109,8 @@ class Character(Base):
         if default_location:
             self.location = default_location
 
+    def advance_level(self, value: int = 1):
+        self.level += value
 
     def go(self, location_id):
         with Session() as session:

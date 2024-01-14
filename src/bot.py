@@ -189,7 +189,7 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
     with db.Session() as session:
         session.add(character)
         if character_total >= enemy_total:
-            character.level += 1
+            character.advance_level()
             if enemy_loot:
                 existing_item = next(
                     (item for item in character.items if item.item == enemy_loot), None)
