@@ -109,6 +109,14 @@ class Character(Base):
         if default_location:
             self.location = default_location
 
+    def take_hit(self, value: int = 1):
+        self.hp -= value
+        if self.hp <= 0:
+            raise Exception("You died")
+
+    def heal(self, value: int = 1):
+        self.hp += value
+
     def advance_level(self, value: int = 1):
         self.level += value
 
