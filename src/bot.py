@@ -72,7 +72,7 @@ async def create_character(message: Message, state: FSMContext):
 async def get_location(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    await callback_query.message.edit_text(msg_text.current_location.format(location=character.location.name), reply_markup=kb.main_menu)
+    await callback_query.message.edit_text(msg_text.current_location.format(location=character.whereami().name), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_hp")
@@ -97,7 +97,7 @@ async def change_location(callback_query: CallbackQuery, state: FSMContext):
     character = data.get('character')
     with db.Session() as session:
         session.add(character)
-        linked_locations = character.location.linked_locations
+        linked_locations = character.whereami().linked_locations
     builder = InlineKeyboardBuilder()
     for location in linked_locations:
         builder.button(text=location.name,
@@ -115,7 +115,7 @@ async def set_location(callback_query: CallbackQuery, state: FSMContext):
     _, location_id = callback_query.data.split(':')
     character.go(location_id)
     await state.update_data(character=character)
-    await callback_query.message.edit_text(msg_text.change_location_succ.format(location=character.location.name, desc=character.location.description), reply_markup=kb.main_menu)
+    await callback_query.message.edit_text(msg_text.change_location_succ.format(location=character.whereami().name, desc=character.whereami().description), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_npcs")
@@ -125,7 +125,7 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
 
     with db.Session() as session:
         session.add(character)
-        npcs = character.location.npcs
+        npcs = character.whereami().npcs
     if npcs:
         builder = InlineKeyboardBuilder()
         for npc in npcs:
@@ -219,7 +219,7 @@ async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
 
     with db.Session() as session:
         session.add(character)
-        enemies = character.location.enemies
+        enemies = character.whereami().enemies
 
     if enemies:
         builder = InlineKeyboardBuilder()

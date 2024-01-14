@@ -119,6 +119,8 @@ class Character(Base):
             session.commit()
             session.refresh(self, attribute_names=['location'])
 
+    def whereami(self):
+        return self.location
 
 
 class Inventory(Base):
