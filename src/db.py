@@ -112,9 +112,9 @@ class Character(Base):
 
 class Inventory(Base):
     __tablename__ = 'inventory'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    character_id = Column(Integer, ForeignKey('characters.id'))
-    item = Column(String)
+    character_id = Column(Integer, ForeignKey(
+        'characters.id'), primary_key=True)
+    item = Column(String, primary_key=True)
     count = Column(Integer)
 
     character = relationship('Character', back_populates='items')
