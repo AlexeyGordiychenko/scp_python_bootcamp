@@ -25,14 +25,14 @@ def load_enemies(session):
 def load_dialogs(session):
     for dialog_entry in get_json_data('dialogs.json'):
         dialog = Dialog(
-            id=dialog_entry['id'], stage=dialog_entry['stage'], npc_text=dialog_entry['npc'])
+            npc_id=dialog_entry['npc_id'], stage_id=dialog_entry['stage_id'], npc_text=dialog_entry['npc_text'])
         session.add(dialog)
         session.flush()  # To ensure dialog has an ID
 
         for response in dialog_entry['player']:
             player_response = PlayerResponse(
-                dialog_id=dialog.id,
-                stage_id=dialog.stage,
+                npc_id=dialog.npc_id,
+                stage_id=dialog.stage_id,
                 text=response['text'],
                 next_stage_id=response.get('next_stage')
             )

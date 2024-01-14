@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, select, and_
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote
 
 Base = declarative_base()
 engine = create_engine('sqlite:///game.db')
@@ -22,10 +22,9 @@ class NPC(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     location_id = Column(Integer, ForeignKey('locations.id'))
-    dialog_id = Column(Integer, ForeignKey('dialogs.id'))
 
     location = relationship("Location", back_populates="npcs")
-    dialog = relationship("Dialog", back_populates="npc")
+    dialogs = relationship("Dialog", back_populates="npc")
 
 
 class Enemy(Base):
@@ -58,27 +57,31 @@ class Location(Base):
 
 class Dialog(Base):
     __tablename__ = 'dialogs'
-    id = Column(Integer, primary_key=True)
-    stage = Column(Integer, nullable=False, index=True, primary_key=True)
+    npc_id = Column(Integer, ForeignKey('npcs.id'), primary_key=True)
+    stage_id = Column(Integer, nullable=False, index=True, primary_key=True)
     npc_text = Column(String, nullable=False)
-    # Relationship to player responses
-    player_responses = relationship("PlayerResponse", back_populates="dialog")
-    npc = relationship('NPC', back_populates='dialog')
+
+    responses = relationship(
+        "PlayerResponse",
+        primaryjoin="and_(Dialog.npc_id==PlayerResponse.npc_id, Dialog.stage_id==foreign(PlayerResponse.stage_id))",
+    )
+    npc = relationship('NPC', back_populates='dialogs')
 
 
 class PlayerResponse(Base):
     __tablename__ = 'player_responses'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    dialog_id = Column(Integer, ForeignKey('dialogs.id'))
+    npc_id = Column(Integer, ForeignKey('npcs.id'))
     stage_id = Column(Integer)
     text = Column(String, nullable=False)
     next_stage_id = Column(Integer, nullable=True)
-    # Relationship to dialog
-    dialog = relationship("Dialog", foreign_keys=[
-                          dialog_id, stage_id], back_populates="player_responses")
-    # Relationship to next stage dialog
-    next_stage = relationship("Dialog", foreign_keys=[
-                              dialog_id, next_stage_id], overlaps="dialog,player_responses")
+
+    dialog = relationship(
+        "Dialog",
+        primaryjoin="and_(foreign(PlayerResponse.npc_id) == remote(Dialog.npc_id), "
+                    "foreign(PlayerResponse.stage_id) == remote(Dialog.stage_id))",
+        back_populates="responses",
+    )
 
 
 class Character(Base):

@@ -1,8 +1,8 @@
 [
     {
-        "id": 1,
-        "stage": 1,
-        "npc": "Hello, stranger",
+        "npc_id": 1,
+        "stage_id": 1,
+        "npc_text": "Hello, stranger",
         "player": [
             {
                 "text": "Hello",
@@ -15,9 +15,9 @@
         ]
     },
     {
-        "id": 1,
-        "stage": 2,
-        "npc": "What can I do for you?",
+        "npc_id": 1,
+        "stage_id": 2,
+        "npc_text": "What can I do for you?",
         "player": [
             {
                 "text": "I'm just walking by",
@@ -29,9 +29,9 @@
         ]
     },
     {
-        "id": 1,
-        "stage": 3,
-        "npc": "I'm the mayor of this town",
+        "npc_id": 1,
+        "stage_id": 3,
+        "npc_text": "I'm the mayor of this town",
         "player": [
             {
                 "text": "Oh, good to know!"
@@ -39,9 +39,9 @@
         ]
     },
     {
-        "id": 1,
-        "stage": 4,
-        "npc": "Ok, good luck!",
+        "npc_id": 1,
+        "stage_id": 4,
+        "npc_text": "Ok, good luck!",
         "player": [
             {
                 "text": "Good luck!"
@@ -49,9 +49,9 @@
         ]
     },
     {
-        "id": 2,
-        "stage": 1,
-        "npc": "Clucking",
+        "npc_id": 2,
+        "stage_id": 1,
+        "npc_text": "Clucking",
         "player": [
             {
                 "text": "aww..."
