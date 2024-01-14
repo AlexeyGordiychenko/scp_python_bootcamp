@@ -186,32 +186,29 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
 
     character_total = randint(1, 6) + int(character.level)
     enemy_total = randint(1, 6) + int(enemy_level)
-
-    if character_total >= enemy_total:
-        character.level += 1
-        if enemy_loot:
-
-            existing_item = next(
-                (item for item in character.items if item.item == enemy_loot), None)
-            if existing_item:
-                existing_item.count += 1
-            else:
-                new_item = db.Inventory(
-                    character_id=character.id, item=enemy_loot, count=1)
-                character.items.append(new_item)
-
-            with db.Session() as session:
-                session.add(character)
-                session.commit()
-                session.refresh(character, attribute_names=[
-                                'location', 'items'])
-            await state.update_data(character=character)
-        result_text = msg_text.fight_succ.format(
-            enemy=enemy_name, level=character.level, loot=enemy_loot)
-    else:
-        character.hp -= 1
-        result_text = msg_text.fight_fail.format(
-            enemy=enemy_name, hp=character.hp)
+    with db.Session() as session:
+        session.add(character)
+        if character_total >= enemy_total:
+            character.level += 1
+            if enemy_loot:
+                existing_item = next(
+                    (item for item in character.items if item.item == enemy_loot), None)
+                if existing_item:
+                    existing_item.count += 1
+                else:
+                    new_item = db.Inventory(
+                        character_id=character.id, item=enemy_loot, count=1)
+                    character.items.append(new_item)
+            result_text = msg_text.fight_succ.format(
+                enemy=enemy_name, level=character.level, loot=enemy_loot)
+        else:
+            character.hp -= 1
+            result_text = msg_text.fight_fail.format(
+                enemy=enemy_name, hp=character.hp)
+        session.commit()
+        session.refresh(character, attribute_names=[
+                        'items'] if enemy_loot else None)
+        await state.update_data(character=character)
     buttons = await get_buttons_for_enemies(state)
     await callback_query.message.edit_text(f"{result_text}\n{msg_text.pick_enemy}", reply_markup=buttons)
 
