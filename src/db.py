@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, select, and_
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload
 
 Base = declarative_base()
 engine = create_engine('sqlite:///game.db')
@@ -24,7 +24,8 @@ class NPC(Base):
     location_id = Column(Integer, ForeignKey('locations.id'))
 
     location = relationship("Location", back_populates="npcs")
-    dialogs = relationship("Dialog", back_populates="npc")
+    dialogs = relationship("Dialog", back_populates="npc",
+                           order_by="Dialog.stage_id")
 
 
 class Enemy(Base):
@@ -108,6 +109,31 @@ class Character(Base):
                 Location.id == 1)).scalars().first()
         if default_location:
             self.location = default_location
+
+    def talk_to(self, npc_id: int):
+        stage = 1
+        with Session() as session:
+            npc = session.execute(
+                select(NPC)
+                .options(selectinload(NPC.dialogs).selectinload(Dialog.responses))
+                .where(NPC.id == npc_id)
+            ).scalar_one_or_none()
+        dialogs = [
+            {
+                'npc_text': dialog.npc_text,
+                'responses': [
+                    {
+                        'next_stage_id': response.next_stage_id,
+                        'text': response.text
+                    } for response in dialog.responses
+                ]
+            } for dialog in npc.dialogs
+        ]
+        while True:
+            dialog = dialogs[stage-1]
+            if not dialog:
+                break
+            stage = yield dialog
 
     def take_hit(self, value: int = 1):
         self.hp -= value
