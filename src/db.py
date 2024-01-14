@@ -53,6 +53,7 @@ class Location(Base):
     )
     npcs = relationship('NPC', back_populates='location')
     enemies = relationship('Enemy', back_populates='location')
+    characters = relationship('Character', back_populates='location')
 
 
 class Dialog(Base):
@@ -92,6 +93,7 @@ class Character(Base):
     level = Column(Integer)
     location_id = Column(Integer, ForeignKey('locations.id'))
 
+    location = relationship('Location', back_populates='characters')
     items = relationship('Inventory', back_populates='character')
 
     def __init__(self, id: int, name: str):
