@@ -113,11 +113,7 @@ async def set_location(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
     _, location_id = callback_query.data.split(':')
-    with db.Session() as session:
-        session.add(character)
-        character.location_id = int(location_id)
-        session.commit()
-        session.refresh(character, attribute_names=['location', 'items'])
+    character.go(location_id)
     await state.update_data(character=character)
     await callback_query.message.edit_text(msg_text.change_location_succ.format(location=character.location.name, desc=character.location.description), reply_markup=kb.main_menu)
 

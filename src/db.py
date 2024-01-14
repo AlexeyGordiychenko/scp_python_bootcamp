@@ -110,6 +110,15 @@ class Character(Base):
             self.location = default_location
 
 
+    def go(self, location_id):
+        with Session() as session:
+            session.add(self)
+            self.location_id = location_id
+            session.commit()
+            session.refresh(self, attribute_names=['location'])
+
+
+
 class Inventory(Base):
     __tablename__ = 'inventory'
     character_id = Column(Integer, ForeignKey(
