@@ -15,8 +15,8 @@ from os import getenv
 import db
 import kb
 import msg_text
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy import inspect, select
+from sqlalchemy.orm import selectinload, LoaderCallableStatus
 
 load_dotenv()
 TOKEN = getenv('TOKEN')
@@ -182,36 +182,18 @@ async def get_enemies(callback_query: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("fight:"))
 async def fight(callback_query: CallbackQuery, state: FSMContext):
-    _, enemy_id, enemy_name, enemy_level, enemy_loot = callback_query.data.split(
-        ':')
+    _, enemy_idx = callback_query.data.split(':')
     data = await state.get_data()
     character = data.get('character')
+    enemy = character.whereami().enemies[int(enemy_idx)]
+    if character.attack(enemy):
+        result_text = msg_text.fight_succ.format(
+            enemy=enemy.name, level=character.level, loot=enemy.loot)
+    else:
+        result_text = msg_text.fight_fail.format(
+            enemy=enemy.name, hp=character.hp)
 
-    character_total = randint(1, 6) + int(character.level)
-    enemy_total = randint(1, 6) + int(enemy_level)
-    with db.Session() as session:
-        session.add(character)
-        if character_total >= enemy_total:
-            character.advance_level()
-            if enemy_loot:
-                existing_item = next(
-                    (item for item in character.items if item.item == enemy_loot), None)
-                if existing_item:
-                    existing_item.count += 1
-                else:
-                    new_item = db.Inventory(
-                        character_id=character.id, item=enemy_loot, count=1)
-                    character.items.append(new_item)
-            result_text = msg_text.fight_succ.format(
-                enemy=enemy_name, level=character.level, loot=enemy_loot)
-        else:
-            character.take_hit()
-            result_text = msg_text.fight_fail.format(
-                enemy=enemy_name, hp=character.hp)
-        session.commit()
-        session.refresh(character, attribute_names=[
-                        'items'] if enemy_loot else None)
-        await state.update_data(character=character)
+    await state.update_data(character=character)
     buttons = await get_buttons_for_enemies(state)
     await callback_query.message.edit_text(f"{result_text}\n{msg_text.pick_enemy}", reply_markup=buttons)
 
@@ -219,16 +201,20 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
 async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
     data = await state.get_data()
     character = data.get('character')
-
-    with db.Session() as session:
-        session.add(character)
+    location_inspection = inspect(character.whereami())
+    if location_inspection.attrs.enemies.loaded_value != LoaderCallableStatus.NO_VALUE:
         enemies = character.whereami().enemies
+    else:
+        with db.Session() as session:
+            session.add(character)
+            enemies = character.whereami().enemies
+        await state.update_data(character=character)
 
     if enemies:
         builder = InlineKeyboardBuilder()
-        for enemy in enemies:
+        for idx, enemy in enumerate(enemies):
             builder.button(text=enemy.name,
-                           callback_data=f'fight:{enemy.id}:{enemy.name}:{enemy.level}:{enemy.loot}')
+                           callback_data=f'fight:{idx}')
         builder.button(text=msg_text.back, callback_data='main_menu')
         builder.adjust(1)
         return builder.as_markup()

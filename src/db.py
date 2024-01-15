@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, select, and_
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload
+from random import randint
 
 Base = declarative_base()
 engine = create_engine('sqlite:///game.db')
@@ -134,6 +135,31 @@ class Character(Base):
             if not dialog:
                 break
             stage = yield dialog
+
+    def attack(self, enemy: Enemy):
+        character_total = randint(1, 6) + int(self.level)
+        enemy_total = randint(1, 6) + int(enemy.level)
+        win = character_total >= enemy_total
+
+        with Session() as session:
+            session.add(self)
+            if win:
+                self.advance_level()
+                if enemy.loot:
+                    existing_item = next(
+                        (item for item in self.items if item.item == enemy.loot), None)
+                    if existing_item:
+                        existing_item.count += 1
+                    else:
+                        new_item = Inventory(
+                            character_id=self.id, item=enemy.loot, count=1)
+                        self.items.append(new_item)
+            else:
+                self.take_hit()
+            session.commit()
+            session.refresh(self, attribute_names=['location', 'items'])
+            session.refresh(self.whereami(), attribute_names=['enemies'])
+        return win
 
     def take_hit(self, value: int = 1):
         self.hp -= value
