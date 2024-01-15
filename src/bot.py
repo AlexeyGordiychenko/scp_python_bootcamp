@@ -205,7 +205,7 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
             result_text = msg_text.fight_succ.format(
                 enemy=enemy_name, level=character.level, loot=enemy_loot)
         else:
-            character.hp -= 1
+            character.take_hit()
             result_text = msg_text.fight_fail.format(
                 enemy=enemy_name, hp=character.hp)
         session.commit()
