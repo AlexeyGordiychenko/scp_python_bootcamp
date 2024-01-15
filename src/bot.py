@@ -123,14 +123,20 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
 
-    with db.Session() as session:
-        session.add(character)
+    location_inspection = inspect(character.whereami())
+    if location_inspection.attrs.npcs.loaded_value != LoaderCallableStatus.NO_VALUE:
         npcs = character.whereami().npcs
+    else:
+        with db.Session() as session:
+            session.add(character)
+            npcs = character.whereami().npcs
+        await state.update_data(character=character)
+
     if npcs:
         builder = InlineKeyboardBuilder()
-        for npc in npcs:
+        for idx, npc in enumerate(npcs):
             builder.button(text=npc.name,
-                           callback_data=f'talk_to_npc:{npc.id}:1')
+                           callback_data=f'talk_to_npc:{idx}:1')
         builder.button(text=msg_text.back, callback_data='main_menu')
         builder.adjust(1)
 
@@ -141,12 +147,13 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("talk_to_npc:"))
 async def talk_to_npc(callback_query: CallbackQuery, state: FSMContext):
-    _, npc_id, stage_id = callback_query.data.split(':')
+    _, npc_idx, stage_id = callback_query.data.split(':')
     stage_id = int(stage_id)
     data = await state.get_data()
     if stage_id == 1:
         character = data.get('character')
-        dialogs = character.talk_to(npc_id)
+        npc = character.whereami().npcs[int(npc_idx)]
+        dialogs = character.talk_to(npc)
         dialog = next(dialogs)
     else:
         dialogs = data.get('current_conversation')
@@ -154,16 +161,15 @@ async def talk_to_npc(callback_query: CallbackQuery, state: FSMContext):
 
     await state.update_data(current_conversation=dialogs)
     builder = InlineKeyboardBuilder()
-    for response in dialog.get('responses', []):
-        if response.get('next_stage_id'):
-            builder.button(text=response.get('text'),
-                           callback_data=f"talk_to_npc:{npc_id}:{response.get('next_stage_id')}")
+    for response in dialog.responses:
+        if response.next_stage_id:
+            builder.button(text=response.text,
+                           callback_data=f"talk_to_npc:{npc_idx}:{response.next_stage_id}")
         else:
-            builder.button(text=response.get('text', 'Leave'),
-                           callback_data='leave_npc')
+            builder.button(text=response.text, callback_data='leave_npc')
     builder.adjust(1)
 
-    await callback_query.message.edit_text(dialog.get('npc_text'), reply_markup=builder.as_markup())
+    await callback_query.message.edit_text(dialog.npc_text, reply_markup=builder.as_markup())
 
 
 @router.callback_query(F.data == "leave_npc")

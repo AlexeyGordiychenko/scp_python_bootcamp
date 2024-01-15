@@ -111,25 +111,15 @@ class Character(Base):
         if default_location:
             self.location = default_location
 
-    def talk_to(self, npc_id: int):
+    def talk_to(self, npc: NPC):
         stage = 1
         with Session() as session:
-            npc = session.execute(
-                select(NPC)
-                .options(selectinload(NPC.dialogs).selectinload(Dialog.responses))
-                .where(NPC.id == npc_id)
-            ).scalar_one_or_none()
-        dialogs = [
-            {
-                'npc_text': dialog.npc_text,
-                'responses': [
-                    {
-                        'next_stage_id': response.next_stage_id,
-                        'text': response.text
-                    } for response in dialog.responses
-                ]
-            } for dialog in npc.dialogs
-        ]
+            dialogs = session.execute(
+                select(Dialog)
+                .options(selectinload(Dialog.responses))
+                .where(Dialog.npc_id == npc.id)
+            ).scalars().all()
+
         while True:
             dialog = dialogs[stage-1]
             if not dialog:
