@@ -213,8 +213,8 @@ async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
 
 async def main() -> None:
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
-    await bot.delete_my_commands()  # temp
-    await bot.set_chat_menu_button()  # temp
+    # await bot.delete_my_commands()  # temp
+    # await bot.set_chat_menu_button()  # temp
 
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
