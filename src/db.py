@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, select, and_
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, inspect, select, and_
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload, LoaderCallableStatus
 from random import randint
 
 Base = declarative_base()
@@ -56,6 +56,25 @@ class Location(Base):
     npcs = relationship('NPC', back_populates='location')
     enemies = relationship('Enemy', back_populates='location')
     characters = relationship('Character', back_populates='location')
+
+    def get_npcs(self):
+        inspection = inspect(self)
+        if inspection.attrs.npcs.loaded_value != LoaderCallableStatus.NO_VALUE:
+            print('cache')
+            return self.npcs
+        else:
+            with Session() as session:
+                session.add(self)
+                return self.npcs
+
+    def get_enemies(self):
+        inspection = inspect(self)
+        if inspection.attrs.enemies.loaded_value != LoaderCallableStatus.NO_VALUE:
+            return self.enemies
+        else:
+            with Session() as session:
+                session.add(self)
+                return self.enemies
 
 
 class Dialog(Base):

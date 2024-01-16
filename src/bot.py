@@ -122,15 +122,7 @@ async def set_location(callback_query: CallbackQuery, state: FSMContext):
 async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-
-    location_inspection = inspect(character.whereami())
-    if location_inspection.attrs.npcs.loaded_value != LoaderCallableStatus.NO_VALUE:
-        npcs = character.whereami().npcs
-    else:
-        with db.Session() as session:
-            session.add(character)
-            npcs = character.whereami().npcs
-        await state.update_data(character=character)
+    npcs = character.whereami().get_npcs()
 
     if npcs:
         builder = InlineKeyboardBuilder()
@@ -207,14 +199,7 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
 async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
     data = await state.get_data()
     character = data.get('character')
-    location_inspection = inspect(character.whereami())
-    if location_inspection.attrs.enemies.loaded_value != LoaderCallableStatus.NO_VALUE:
-        enemies = character.whereami().enemies
-    else:
-        with db.Session() as session:
-            session.add(character)
-            enemies = character.whereami().enemies
-        await state.update_data(character=character)
+    enemies = character.whereami().get_enemies()
 
     if enemies:
         builder = InlineKeyboardBuilder()
