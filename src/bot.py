@@ -159,9 +159,9 @@ async def talk_to_npc(callback_query: CallbackQuery, state: FSMContext):
                            callback_data=f"talk_to_npc:{npc_idx}:{response.next_stage_id}")
         else:
             builder.button(text=response.text, callback_data='leave_npc')
-    builder.adjust(1)
+    builder.adjust(2)
 
-    await callback_query.message.edit_text(dialog.npc_text, reply_markup=builder.as_markup())
+    await callback_query.message.edit_text(msg_text.format_string(dialog.npc_text), reply_markup=builder.as_markup())
 
 
 @router.callback_query(F.data == "leave_npc")
