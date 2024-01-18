@@ -16,7 +16,6 @@ msg_no_npcs_in_location = "There are no NPCs in this location."
 msg_pick_enemy = "Which enemy do you want to fight:"
 msg_no_enemies_in_location = "There are no enemies in this location."
 msg_choose_action = "Choose an action:"
-msg_back = "Back"
 msg_fight_succ = "You've defeated the {enemy}!\nYour level is increased by 1.\nCurrent level is {level}.\nYou've looted 1 {loot}."
 msg_fight_succ_no_loot = "You've defeated the {enemy}!\nYour level is increased by 1.\nCurrent level is {level}."
 msg_fight_fail = "{enemy} has defeated you.\nYour health is reduced by 1.\nCurrent health is {hp}."
@@ -26,6 +25,7 @@ msg_gen_welcome = "This is a bot to generate names for various characters and it
 msg_gen_choose_type = "Choose a type:"
 msg_gen_choose_category = "Choose a category:"
 
+btn_back = "Back"
 
 def format_string(input_string, line_length=MAX_LINE_WIDTH):
     return f"{input_string:<{line_length}}"+SPEC_MSG_END
@@ -33,7 +33,7 @@ def format_string(input_string, line_length=MAX_LINE_WIDTH):
 
 def _apply_formatting():
     globals_to_format = {k: v for k,
-                         v in globals().items() if isinstance(v, str) and k.startswith('msg_') and k != 'msg_back' and k != __name__}
+                         v in globals().items() if isinstance(v, str) and k.startswith('msg_') and k != __name__}
     for name, value in globals_to_format.items():
         formatted_value = format_string(value)
         globals()[name] = formatted_value

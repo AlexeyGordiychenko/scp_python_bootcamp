@@ -107,7 +107,7 @@ async def change_location(callback_query: CallbackQuery, state: FSMContext):
     for location in linked_locations:
         builder.button(text=location.name,
                        callback_data=f'set_location:{location.id}')
-    builder.button(text=msg_text.msg_back, callback_data='main_menu')
+    builder.button(text=msg_text.btn_back, callback_data='main_menu')
     builder.adjust(2)
 
     await send_edit_message(callback_query, msg_text.msg_change_location_ask, reply_markup=builder.as_markup())
@@ -133,7 +133,7 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
         for idx, npc in enumerate(npcs):
             builder.button(text=npc.name,
                            callback_data=f'talk_to_npc:{idx}:1')
-        builder.button(text=msg_text.msg_back, callback_data='main_menu')
+        builder.button(text=msg_text.btn_back, callback_data='main_menu')
         builder.adjust(1)
 
         await send_edit_message(callback_query, msg_text.msg_pick_npc, reply_markup=builder.as_markup())
@@ -213,7 +213,7 @@ async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
         for idx, enemy in enumerate(enemies):
             builder.button(text=enemy.name,
                            callback_data=f'fight:{idx}')
-        builder.button(text=msg_text.msg_back, callback_data='main_menu')
+        builder.button(text=msg_text.btn_back, callback_data='main_menu')
         builder.adjust(1)
         return builder.as_markup()
 
