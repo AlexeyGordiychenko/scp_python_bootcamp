@@ -26,6 +26,8 @@ msg_gen_choose_type = "Choose a type:"
 msg_gen_choose_category = "Choose a category:"
 
 btn_back = "Back"
+btn_use_item = "Use {item}"
+
 
 def format_string(input_string, line_length=MAX_LINE_WIDTH):
     return f"{input_string:<{line_length}}"+SPEC_MSG_END

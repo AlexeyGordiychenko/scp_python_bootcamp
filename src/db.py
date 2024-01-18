@@ -105,6 +105,24 @@ class PlayerResponse(Base):
     )
 
 
+class Inventory(Base):
+    __tablename__ = 'inventory'
+    character_id = Column(Integer, ForeignKey(
+        'characters.id'), primary_key=True)
+    item_id = Column(Integer, ForeignKey('items.id'), primary_key=True)
+    count = Column(Integer)
+
+    character = relationship('Character', back_populates='inventory')
+    item = relationship('Item', lazy='selectin')
+
+
+class Item(Base):
+    __tablename__ = 'items'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    usable = Column(Boolean)
+
+
 class Character(Base):
     __tablename__ = 'characters'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -190,20 +208,18 @@ class Character(Base):
             session.add(self)
             return self.location
 
-
-class Inventory(Base):
-    __tablename__ = 'inventory'
-    character_id = Column(Integer, ForeignKey(
-        'characters.id'), primary_key=True)
-    item_id = Column(Integer, ForeignKey('items.id'), primary_key=True)
-    count = Column(Integer)
-
-    character = relationship('Character', back_populates='inventory')
-    item = relationship('Item', lazy='selectin')
-
-
-class Item(Base):
-    __tablename__ = 'items'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    usable = Column(Boolean)
+    def use_item(self, item: Inventory):
+        effect = "You can't use this item."
+        with Session() as session:
+            if item.item.usable:
+                session.expire_on_commit = False
+                session.add(self)
+                if item.item.name == 'Potion of Health':
+                    self.heal()
+                    effect = f"You've used {item.item.name}.\nYour health increased by 1."
+                item.count -= 1
+                if item.count <= 0:
+                    session.delete(item)
+                    session.refresh(self, attribute_names=['inventory'])
+            session.commit()
+        return effect

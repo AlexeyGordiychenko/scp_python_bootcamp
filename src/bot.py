@@ -93,9 +93,32 @@ async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
     character = data.get('character')
     with db.Session() as session:
         session.add(character)
-        inventory_msg = '\n'.join(
-            [f'{item.item.name}: {item.count}' for item in character.inventory])
-    await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
+        builder = InlineKeyboardBuilder()
+        has_usable = False
+        inventory_msg = ""
+        for idx, item in enumerate(character.inventory):
+            inventory_msg = f"{inventory_msg}{item.item.name}: {item.count}\n"
+            if item.item.usable:
+                has_usable = True
+                builder.button(text=msg_text.btn_use_item.format(item=item.item.name),
+                               callback_data=f'use_item:{idx}')
+        if has_usable:
+            builder.button(text=msg_text.btn_back, callback_data='main_menu')
+            builder.adjust(1)
+            reply_markup = builder.as_markup()
+        else:
+            reply_markup = kb.main_menu
+
+        await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=reply_markup)
+
+
+@router.callback_query(F.data.startswith("use_item:"))
+async def use_item(callback_query: CallbackQuery, state: FSMContext):
+    _, item_idx = callback_query.data.split(':')
+    data = await state.get_data()
+    character = data.get('character')
+    effect = character.use_item(character.inventory[int(item_idx)])
+    await send_edit_message(callback_query, effect, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "change_location")
