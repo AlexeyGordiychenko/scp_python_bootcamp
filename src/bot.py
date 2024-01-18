@@ -80,11 +80,11 @@ async def get_location(callback_query: CallbackQuery, state: FSMContext):
     await send_edit_message(callback_query, msg_text.msg_current_location.format(location=character.whereami().name), reply_markup=kb.main_menu)
 
 
-@router.callback_query(F.data == "get_hp")
-async def get_hp(callback_query: CallbackQuery, state: FSMContext):
+@router.callback_query(F.data == "get_stats")
+async def get_stats(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    await send_edit_message(callback_query, msg_text.msg_current_health.format(health=character.hp), reply_markup=kb.main_menu)
+    await send_edit_message(callback_query, msg_text.msg_stats.format(health=character.hp, level=character.level), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_inventory")

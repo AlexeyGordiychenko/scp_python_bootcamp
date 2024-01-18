@@ -11,7 +11,7 @@ main_menu_buttons = [
      InlineKeyboardButton(text="Go to", callback_data="change_location")],
     [InlineKeyboardButton(text="Inventory", callback_data="get_inventory"),
      InlineKeyboardButton(text="NPC", callback_data="get_npcs")],
-    [InlineKeyboardButton(text="Health", callback_data="get_hp"),
+    [InlineKeyboardButton(text="Stats", callback_data="get_stats"),
      InlineKeyboardButton(text="Enemies", callback_data="get_enemies")],
 ]
 main_menu = InlineKeyboardMarkup(inline_keyboard=main_menu_buttons)
