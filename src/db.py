@@ -1,9 +1,11 @@
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, inspect, select, and_
+import os
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload, LoaderCallableStatus
 from random import randint
 
 Base = declarative_base()
-engine = create_engine('sqlite:///game.db')
+db_path = os.path.join(os.path.dirname(__file__), 'game.db')
+engine = create_engine('sqlite:///'+db_path)
 Session = sessionmaker(bind=engine)
 
 linked_locations_association = Table('linked_locations', Base.metadata,
