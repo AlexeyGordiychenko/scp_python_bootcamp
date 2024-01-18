@@ -60,24 +60,20 @@ class Location(Base):
     enemies = relationship('Enemy', back_populates='location')
     characters = relationship('Character', back_populates='location')
 
+    def get_linked_locations(self):
+        with Session() as session:
+            session.add(self)
+            return self.linked_locations
+
     def get_npcs(self):
-        inspection = inspect(self)
-        if inspection.attrs.npcs.loaded_value != LoaderCallableStatus.NO_VALUE:
-            print('cache')
+        with Session() as session:
+            session.add(self)
             return self.npcs
-        else:
-            with Session() as session:
-                session.add(self)
-                return self.npcs
 
     def get_enemies(self):
-        inspection = inspect(self)
-        if inspection.attrs.enemies.loaded_value != LoaderCallableStatus.NO_VALUE:
+        with Session() as session:
+            session.add(self)
             return self.enemies
-        else:
-            with Session() as session:
-                session.add(self)
-                return self.enemies
 
 
 class Dialog(Base):
@@ -127,11 +123,6 @@ class Character(Base):
         self.hp: int = 10
         self.level = 1
         self.location_id = 1
-        with Session() as session:
-            default_location = session.execute(select(Location).where(
-                Location.id == 1)).scalars().first()
-        if default_location:
-            self.location = default_location
         self.inventory = [Inventory(item_id=1, count=1),
                           Inventory(item_id=4, count=3)]
 
@@ -156,6 +147,7 @@ class Character(Base):
         win = character_total >= enemy_total
         loot = None
         with Session() as session:
+            session.expire_on_commit = False
             session.add(self)
             if win:
                 self.advance_level()
@@ -172,8 +164,6 @@ class Character(Base):
             else:
                 self.take_hit()
             session.commit()
-            session.refresh(self, attribute_names=['location', 'inventory'])
-            session.refresh(self.whereami(), attribute_names=['enemies'])
         return win, loot
 
     def take_hit(self, value: int = 1):
@@ -189,13 +179,16 @@ class Character(Base):
 
     def go(self, location_id):
         with Session() as session:
+            session.expire_on_commit = False
             session.add(self)
             self.location_id = location_id
             session.commit()
             session.refresh(self, attribute_names=['location'])
 
     def whereami(self):
-        return self.location
+        with Session() as session:
+            session.add(self)
+            return self.location
 
 
 class Inventory(Base):

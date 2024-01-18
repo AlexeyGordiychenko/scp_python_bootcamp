@@ -41,7 +41,6 @@ async def start_command(message: Message, state: FSMContext):
     with db.Session() as session:
         existing_character = session.execute(
             select(db.Character)
-            .options(selectinload(db.Character.location), selectinload(db.Character.items))
             .where(db.Character.id == message.from_user.id)
         ).scalar_one_or_none()
     if existing_character:
@@ -69,7 +68,7 @@ async def create_character(message: Message, state: FSMContext):
     with db.Session() as session:
         session.add(new_character)
         session.commit()
-        session.refresh(new_character, attribute_names=['location', 'items'])
+
         await state.update_data(character=new_character)
     await message.answer(msg_text.msg_create_succ, reply_markup=kb.main_menu)
 
@@ -92,8 +91,10 @@ async def get_hp(callback_query: CallbackQuery, state: FSMContext):
 async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    inventory_msg = '\n'.join(
-        [f'{item.item}: {item.count}' for item in character.items])
+    with db.Session() as session:
+        session.add(character)
+        inventory_msg = '\n'.join(
+            [f'{item.item.name}: {item.count}' for item in character.inventory])
     await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
 
 
@@ -101,9 +102,7 @@ async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
 async def change_location(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    with db.Session() as session:
-        session.add(character)
-        linked_locations = character.whereami().linked_locations
+    linked_locations = character.whereami().get_linked_locations()
     builder = InlineKeyboardBuilder()
     for location in linked_locations:
         builder.button(text=location.name,
@@ -120,7 +119,6 @@ async def set_location(callback_query: CallbackQuery, state: FSMContext):
     character = data.get('character')
     _, location_id = callback_query.data.split(':')
     character.go(location_id)
-    await state.update_data(character=character)
     await send_edit_message(callback_query, msg_text.msg_change_location_succ.format(location=character.whereami().name, desc=character.whereami().description), reply_markup=kb.main_menu)
 
 
@@ -189,15 +187,18 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
     _, enemy_idx = callback_query.data.split(':')
     data = await state.get_data()
     character = data.get('character')
-    enemy = character.whereami().enemies[int(enemy_idx)]
-    if character.attack(enemy):
-        result_text = msg_text.fight_succ.format(
-            enemy=enemy.name, level=character.level, loot=enemy.loot)
+    enemy = character.whereami().get_enemies()[int(enemy_idx)]
+    res, loot = character.attack(enemy)
+    if res and enemy.loot_id:
+        result_text = msg_text.msg_fight_succ.format(
+            enemy=enemy.name, level=character.level, loot=loot.name)
+    elif res:
+        result_text = msg_text.msg_fight_succ_no_loot.format(
+            enemy=enemy.name, level=character.level)
     else:
         result_text = msg_text.msg_fight_fail.format(
             enemy=enemy.name, hp=character.hp)
 
-    await state.update_data(character=character)
     buttons = await get_buttons_for_enemies(state)
     await send_edit_message(callback_query, f"{result_text}\n{msg_text.msg_pick_enemy}", reply_markup=buttons)
 
