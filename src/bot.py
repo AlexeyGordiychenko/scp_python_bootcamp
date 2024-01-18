@@ -17,6 +17,7 @@ import kb
 import msg_text
 from sqlalchemy import inspect, select
 from sqlalchemy.orm import selectinload, LoaderCallableStatus
+import html
 
 load_dotenv()
 TOKEN = getenv('TOKEN')
@@ -30,6 +31,11 @@ class MenuStates(StatesGroup):
     create_character = State()
 
 
+async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_markup: types.InlineKeyboardMarkup):
+    if html.unescape(msg) != html.unescape(callback_query.message.html_text):
+        await callback_query.message.edit_text(msg, reply_markup=reply_markup)
+
+
 @router.message(Command("start"))
 async def start_command(message: Message, state: FSMContext):
     with db.Session() as session:
@@ -40,20 +46,20 @@ async def start_command(message: Message, state: FSMContext):
         ).scalar_one_or_none()
     if existing_character:
         await state.update_data(character=existing_character)
-        await message.answer(msg_text.welcome.format(name=existing_character.name), reply_markup=kb.main_menu)
+        await message.answer(msg_text.msg_welcome.format(name=existing_character.name), reply_markup=kb.main_menu)
     else:
-        await message.answer(msg_text.welcome_new, reply_markup=kb.create_character_menu)
+        await message.answer(msg_text.msg_welcome_new, reply_markup=kb.create_character_menu)
 
 
 @router.callback_query(F.data == "main_menu")
 async def main_menu(callback_query: CallbackQuery):
-    await callback_query.message.edit_text(msg_text.choose_action, reply_markup=kb.main_menu)
+    await send_edit_message(callback_query, msg_text.msg_choose_action, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "create_character")
 async def input_character_name(clbck: CallbackQuery, state: FSMContext):
     await state.set_state(MenuStates.create_character)
-    await clbck.message.answer(msg_text.enter_name)
+    await clbck.message.answer(msg_text.msg_enter_name)
 
 
 @router.message(MenuStates.create_character)
@@ -65,21 +71,21 @@ async def create_character(message: Message, state: FSMContext):
         session.commit()
         session.refresh(new_character, attribute_names=['location', 'items'])
         await state.update_data(character=new_character)
-    await message.answer(msg_text.create_succ, reply_markup=kb.main_menu)
+    await message.answer(msg_text.msg_create_succ, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_location")
 async def get_location(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    await callback_query.message.edit_text(msg_text.current_location.format(location=character.whereami().name), reply_markup=kb.main_menu)
+    await send_edit_message(callback_query, msg_text.msg_current_location.format(location=character.whereami().name), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_hp")
 async def get_hp(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    await callback_query.message.edit_text(msg_text.current_health.format(health=character.hp), reply_markup=kb.main_menu)
+    await send_edit_message(callback_query, msg_text.msg_current_health.format(health=character.hp), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_inventory")
@@ -88,7 +94,7 @@ async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
     character = data.get('character')
     inventory_msg = '\n'.join(
         [f'{item.item}: {item.count}' for item in character.items])
-    await callback_query.message.edit_text(f'{msg_text.current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
+    await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "change_location")
@@ -102,10 +108,10 @@ async def change_location(callback_query: CallbackQuery, state: FSMContext):
     for location in linked_locations:
         builder.button(text=location.name,
                        callback_data=f'set_location:{location.id}')
-    builder.button(text=msg_text.back, callback_data='main_menu')
+    builder.button(text=msg_text.msg_back, callback_data='main_menu')
     builder.adjust(2)
 
-    await callback_query.message.edit_text(msg_text.change_location_ask, reply_markup=builder.as_markup())
+    await send_edit_message(callback_query, msg_text.msg_change_location_ask, reply_markup=builder.as_markup())
 
 
 @router.callback_query(F.data.startswith("set_location:"))
@@ -115,7 +121,7 @@ async def set_location(callback_query: CallbackQuery, state: FSMContext):
     _, location_id = callback_query.data.split(':')
     character.go(location_id)
     await state.update_data(character=character)
-    await callback_query.message.edit_text(msg_text.change_location_succ.format(location=character.whereami().name, desc=character.whereami().description), reply_markup=kb.main_menu)
+    await send_edit_message(callback_query, msg_text.msg_change_location_succ.format(location=character.whereami().name, desc=character.whereami().description), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_npcs")
@@ -129,12 +135,12 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
         for idx, npc in enumerate(npcs):
             builder.button(text=npc.name,
                            callback_data=f'talk_to_npc:{idx}:1')
-        builder.button(text=msg_text.back, callback_data='main_menu')
+        builder.button(text=msg_text.msg_back, callback_data='main_menu')
         builder.adjust(1)
 
-        await callback_query.message.edit_text(msg_text.pick_npc, reply_markup=builder.as_markup())
+        await send_edit_message(callback_query, msg_text.msg_pick_npc, reply_markup=builder.as_markup())
     else:
-        await callback_query.message.edit_text(msg_text.no_npcs_in_location, reply_markup=kb.main_menu)
+        await send_edit_message(callback_query, msg_text.msg_no_npcs_in_location, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data.startswith("talk_to_npc:"))
@@ -161,21 +167,21 @@ async def talk_to_npc(callback_query: CallbackQuery, state: FSMContext):
             builder.button(text=response.text, callback_data='leave_npc')
     builder.adjust(2)
 
-    await callback_query.message.edit_text(msg_text.format_string(dialog.npc_text), reply_markup=builder.as_markup())
+    await send_edit_message(callback_query, msg_text.format_string(dialog.npc_text), reply_markup=builder.as_markup())
 
 
 @router.callback_query(F.data == "leave_npc")
 async def leave_npc(callback_query: CallbackQuery):
-    await callback_query.message.edit_text(msg_text.leave_npc, reply_markup=kb.main_menu)
+    await send_edit_message(callback_query, msg_text.msg_leave_npc, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_enemies")
 async def get_enemies(callback_query: CallbackQuery, state: FSMContext):
     buttons = await get_buttons_for_enemies(state)
     if buttons:
-        await callback_query.message.edit_text(msg_text.pick_enemy, reply_markup=buttons)
+        await send_edit_message(callback_query, msg_text.msg_pick_enemy, reply_markup=buttons)
     else:
-        await callback_query.message.edit_text(msg_text.no_enemies_in_location, reply_markup=kb.main_menu)
+        await send_edit_message(callback_query, msg_text.msg_no_enemies_in_location, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data.startswith("fight:"))
@@ -188,12 +194,12 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
         result_text = msg_text.fight_succ.format(
             enemy=enemy.name, level=character.level, loot=enemy.loot)
     else:
-        result_text = msg_text.fight_fail.format(
+        result_text = msg_text.msg_fight_fail.format(
             enemy=enemy.name, hp=character.hp)
 
     await state.update_data(character=character)
     buttons = await get_buttons_for_enemies(state)
-    await callback_query.message.edit_text(f"{result_text}\n{msg_text.pick_enemy}", reply_markup=buttons)
+    await send_edit_message(callback_query, f"{result_text}\n{msg_text.msg_pick_enemy}", reply_markup=buttons)
 
 
 async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
@@ -206,7 +212,7 @@ async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
         for idx, enemy in enumerate(enemies):
             builder.button(text=enemy.name,
                            callback_data=f'fight:{idx}')
-        builder.button(text=msg_text.back, callback_data='main_menu')
+        builder.button(text=msg_text.msg_back, callback_data='main_menu')
         builder.adjust(1)
         return builder.as_markup()
 
