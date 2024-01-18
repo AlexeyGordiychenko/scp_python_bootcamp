@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, inspect, select, and_
 import os
+from sqlalchemy import Boolean, create_engine, Column, Integer, String, ForeignKey, Table, inspect, select, and_
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload, LoaderCallableStatus
 from random import randint
 
@@ -37,9 +37,10 @@ class Enemy(Base):
     name = Column(String)
     location_id = Column(Integer, ForeignKey('locations.id'))
     level = Column(Integer)
-    loot = Column(String)
+    loot_id = Column(Integer, ForeignKey('items.id'), nullable=True)
 
     location = relationship("Location", back_populates="enemies")
+    loot = relationship("Item")
 
 
 class Location(Base):
@@ -117,7 +118,8 @@ class Character(Base):
     location_id = Column(Integer, ForeignKey('locations.id'))
 
     location = relationship('Location', back_populates='characters')
-    items = relationship('Inventory', back_populates='character')
+    inventory = relationship(
+        'Inventory', back_populates='character')
 
     def __init__(self, id: int, name: str):
         self.id = id
@@ -125,12 +127,13 @@ class Character(Base):
         self.hp: int = 10
         self.level = 1
         self.location_id = 1
-        self.items = [Inventory(item='Rusty Sword', count=1)]
         with Session() as session:
             default_location = session.execute(select(Location).where(
                 Location.id == 1)).scalars().first()
         if default_location:
             self.location = default_location
+        self.inventory = [Inventory(item_id=1, count=1),
+                          Inventory(item_id=4, count=3)]
 
     def talk_to(self, npc: NPC):
         stage = 1
@@ -151,26 +154,27 @@ class Character(Base):
         character_total = randint(1, 6) + int(self.level)
         enemy_total = randint(1, 6) + int(enemy.level)
         win = character_total >= enemy_total
-
+        loot = None
         with Session() as session:
             session.add(self)
             if win:
                 self.advance_level()
-                if enemy.loot:
+                if enemy.loot_id:
                     existing_item = next(
-                        (item for item in self.items if item.item == enemy.loot), None)
+                        (item for item in self.inventory if item.item_id == enemy.loot_id), None)
                     if existing_item:
                         existing_item.count += 1
                     else:
-                        new_item = Inventory(
-                            character_id=self.id, item=enemy.loot, count=1)
-                        self.items.append(new_item)
+                        self.inventory.append(
+                            Inventory(item_id=enemy.loot_id, count=1))
+                    loot = session.execute(select(Item).where(
+                        Item.id == enemy.loot_id)).scalar_one_or_none()
             else:
                 self.take_hit()
             session.commit()
-            session.refresh(self, attribute_names=['location', 'items'])
+            session.refresh(self, attribute_names=['location', 'inventory'])
             session.refresh(self.whereami(), attribute_names=['enemies'])
-        return win
+        return win, loot
 
     def take_hit(self, value: int = 1):
         self.hp -= value
@@ -198,7 +202,15 @@ class Inventory(Base):
     __tablename__ = 'inventory'
     character_id = Column(Integer, ForeignKey(
         'characters.id'), primary_key=True)
-    item = Column(String, primary_key=True)
+    item_id = Column(Integer, ForeignKey('items.id'), primary_key=True)
     count = Column(Integer)
 
-    character = relationship('Character', back_populates='items')
+    character = relationship('Character', back_populates='inventory')
+    item = relationship('Item', lazy='selectin')
+
+
+class Item(Base):
+    __tablename__ = 'items'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    usable = Column(Boolean)

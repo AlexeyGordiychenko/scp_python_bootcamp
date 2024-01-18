@@ -4,13 +4,19 @@
         "name": "Troll",
         "location_id": 2,
         "level": 1,
-        "loot": "trinket"
+        "loot_id": 2
     },
     {
         "id": 2,
         "name": "Goblin",
         "location_id": 2,
         "level": 1,
-        "loot": "animal skin"
+        "loot_id": 3
+    },
+    {
+        "id": 3,
+        "name": "Elk",
+        "location_id": 2,
+        "level": 0
     }
 ]

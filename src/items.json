@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "name": "Rusty Sword",
+        "usable": false
+    },
+    {
+        "id": 2,
+        "name": "Trinket",
+        "usable": false
+    },
+    {
+        "id": 3,
+        "name": "Animal Skin",
+        "usable": false
+    },
+    {
+        "id": 4,
+        "name": "Healing Potion",
+        "usable": true
+    }
+]
