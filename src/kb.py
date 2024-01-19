@@ -1,5 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 
+back_to_menu_btn = InlineKeyboardButton(text="Back", callback_data='main_menu')
+
 create_character_button = [
     [InlineKeyboardButton(text="Create", callback_data="create_character")],
 ]
@@ -15,6 +17,3 @@ main_menu_buttons = [
      InlineKeyboardButton(text="Enemies", callback_data="get_enemies")],
 ]
 main_menu = InlineKeyboardMarkup(inline_keyboard=main_menu_buttons)
-
-to_menu_kb = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="Exit to main menu")]], resize_keyboard=True)

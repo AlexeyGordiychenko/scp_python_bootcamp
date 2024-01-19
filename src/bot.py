@@ -103,7 +103,7 @@ async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
                 builder.button(text=msg_text.btn_use_item.format(item=item.item.name),
                                callback_data=f'use_item:{idx}')
         if has_usable:
-            builder.button(text=msg_text.btn_back, callback_data='main_menu')
+            builder.add(kb.back_to_menu_btn)
             builder.adjust(1)
             reply_markup = builder.as_markup()
         else:
@@ -130,7 +130,7 @@ async def change_location(callback_query: CallbackQuery, state: FSMContext):
     for direction in directions:
         builder.button(text=direction.name,
                        callback_data=f'set_location:{direction.id}')
-    builder.button(text=msg_text.btn_back, callback_data='main_menu')
+    builder.add(kb.back_to_menu_btn)
     builder.adjust(2)
 
     await send_edit_message(callback_query, msg_text.msg_change_location_ask, reply_markup=builder.as_markup())
@@ -236,7 +236,7 @@ async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
         for idx, enemy in enumerate(enemies):
             builder.button(text=enemy.name,
                            callback_data=f'fight:{idx}')
-        builder.button(text=msg_text.btn_back, callback_data='main_menu')
+        builder.add(kb.back_to_menu_btn)
         builder.adjust(1)
         return builder.as_markup()
 
