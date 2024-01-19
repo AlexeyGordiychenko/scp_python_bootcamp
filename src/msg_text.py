@@ -8,6 +8,8 @@ msg_create_succ = "Character created."
 msg_current_location = "Current location: {location}."
 msg_stats = "Current level: {level}.\nCurrent health: {health}."
 msg_current_inventory = "Current inventory:\n"
+msg_choose_item_to_use = "Choose an item to use:"
+msg_no_usable_items = "No usable items available."
 msg_change_location_ask = "Where do you want to go?"
 msg_change_location_succ = "You've moved to {location}.\nDescription: {desc}"
 msg_pick_npc = "Which NPC do you want to talk to:"
@@ -26,7 +28,6 @@ msg_gen_choose_type = "Choose a type:"
 msg_gen_choose_category = "Choose a category:"
 
 btn_back = "Back"
-btn_use_item = "Use {item}"
 
 
 def format_string(input_string, line_length=MAX_LINE_WIDTH):

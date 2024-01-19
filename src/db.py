@@ -133,6 +133,11 @@ class Character(Base):
     location = relationship('Location', back_populates='characters')
     inventory = relationship(
         'Inventory', back_populates='character')
+    inventory_usable = relationship(
+        'Inventory',
+        secondary="join(Inventory, Item, and_(Inventory.item_id == Item.id, Item.usable == True))",
+        viewonly=True
+    )
 
     def __init__(self, id: int, name: str):
         self.id = id
@@ -219,7 +224,8 @@ class Character(Base):
                 item.count -= 1
                 if item.count <= 0:
                     session.delete(item)
-                    session.refresh(self, attribute_names=['inventory'])
+                    session.refresh(self, attribute_names=[
+                                    'inventory', 'inventory_usable'])
             session.commit()
         return effect
 
