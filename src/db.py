@@ -8,16 +8,16 @@ db_path = os.path.join(os.path.dirname(__file__), 'game.db')
 engine = create_engine('sqlite:///'+db_path)
 Session = sessionmaker(bind=engine)
 
-linked_locations_association = Table('linked_locations', Base.metadata,
-                                     Column('location_id', Integer, ForeignKey(
-                                         'locations.id'), primary_key=True),
-                                     Column('linked_location_id', Integer, ForeignKey(
-                                         'locations.id'), primary_key=True)
-                                     )
+directions_association = Table('directions', Base.metadata,
+                               Column('location_from_id', Integer, ForeignKey(
+                                   'locations.id'), primary_key=True),
+                               Column('location_to_id', Integer, ForeignKey(
+                                   'locations.id'), primary_key=True)
+                               )
 
 
-class LinkedLocations(Base):
-    __tablename__ = 'linked_locations'
+class Direction(Base):
+    __tablename__ = 'directions'
 
 
 class NPC(Base):
@@ -49,21 +49,20 @@ class Location(Base):
     name = Column(String)
     description = Column(String)
 
-    linked_locations = relationship(
+    directions = relationship(
         "Location",
-        secondary=linked_locations_association,
-        primaryjoin=id == linked_locations_association.c.location_id,
-        secondaryjoin=id == linked_locations_association.c.linked_location_id,
-        backref="linked_to"
+        secondary=directions_association,
+        primaryjoin=id == directions_association.c.location_from_id,
+        secondaryjoin=id == directions_association.c.location_to_id
     )
     npcs = relationship('NPC', back_populates='location')
     enemies = relationship('Enemy', back_populates='location')
     characters = relationship('Character', back_populates='location')
 
-    def get_linked_locations(self):
+    def get_directions(self):
         with Session() as session:
             session.add(self)
-            return self.linked_locations
+            return self.directions
 
     def get_npcs(self):
         with Session() as session:

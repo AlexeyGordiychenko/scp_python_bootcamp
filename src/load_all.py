@@ -1,6 +1,6 @@
 import json
 from db import (Base, Item, Location, NPC, Enemy,
-                Dialog, PlayerResponse, LinkedLocations, engine, Session)
+                Dialog, PlayerResponse, Direction, engine, Session)
 
 
 def get_json_data(filename):
@@ -53,9 +53,9 @@ def load_locations(session):
 
     for location in locations_data:
         current_location = location_instances[location['id']]
-        for linked_location_id in location['linked_locations']:
-            linked_location = location_instances[linked_location_id]
-            current_location.linked_locations.append(linked_location)
+        for direction_id in location['directions']:
+            direction = location_instances[direction_id]
+            current_location.directions.append(direction)
 
     session.commit()
 
@@ -69,7 +69,7 @@ def load_items(session):
 
 if __name__ == "__main__":
     tables_to_drop = [Location.__table__, NPC.__table__, Enemy.__table__,
-                      Dialog.__table__, PlayerResponse.__table__, LinkedLocations.__table__, Item.__table__]
+                      Dialog.__table__, PlayerResponse.__table__, Direction.__table__, Item.__table__]
     Base.metadata.drop_all(bind=engine, tables=tables_to_drop)
 
     Base.metadata.create_all(engine)

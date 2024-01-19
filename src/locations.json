@@ -3,7 +3,7 @@
         "id": 1,
         "name": "Town",
         "description": "Main town",
-        "linked_locations": [
+        "directions": [
             2,
             3
         ]
@@ -12,7 +12,7 @@
         "id": 2,
         "name": "Village",
         "description": "Small village outside of the Town",
-        "linked_locations": [
+        "directions": [
             1
         ]
     },
@@ -20,7 +20,7 @@
         "id": 3,
         "name": "Stronghold",
         "description": "Stronghold outside of the Town",
-        "linked_locations": [
+        "directions": [
             1
         ]
     }

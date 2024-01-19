@@ -125,11 +125,11 @@ async def use_item(callback_query: CallbackQuery, state: FSMContext):
 async def change_location(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    linked_locations = character.whereami().get_linked_locations()
+    directions = character.whereami().get_directions()
     builder = InlineKeyboardBuilder()
-    for location in linked_locations:
-        builder.button(text=location.name,
-                       callback_data=f'set_location:{location.id}')
+    for direction in directions:
+        builder.button(text=direction.name,
+                       callback_data=f'set_location:{direction.id}')
     builder.button(text=msg_text.btn_back, callback_data='main_menu')
     builder.adjust(2)
 
