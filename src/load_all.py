@@ -10,60 +10,44 @@ def get_json_data(filename):
 
 def load_npcs(session):
     for npc_data in get_json_data('npcs.json'):
-        npc = NPC(**npc_data)
-        session.add(npc)
+        session.add(NPC(**npc_data))
     session.commit()
 
 
 def load_enemies(session):
     for enemy_data in get_json_data('enemies.json'):
-        enemy = Enemy(**enemy_data)
-        session.add(enemy)
+        session.add(Enemy(**enemy_data))
     session.commit()
 
 
 def load_dialogs(session):
-    for dialog_entry in get_json_data('dialogs.json'):
-        dialog = Dialog(
-            npc_id=dialog_entry['npc_id'], stage_id=dialog_entry['stage_id'], npc_text=dialog_entry['npc_text'])
-        session.add(dialog)
-        session.flush()  # To ensure dialog has an ID
+    for dialog in get_json_data('dialogs.json'):
+        session.add(Dialog(
+            npc_id=dialog['npc_id'], stage_id=dialog['stage_id'], npc_text=dialog['npc_text']))
 
-        for response in dialog_entry['player']:
-            player_response = PlayerResponse(
-                npc_id=dialog.npc_id,
-                stage_id=dialog.stage_id,
-                text=response['text'],
-                next_stage_id=response.get('next_stage')
-            )
-            session.add(player_response)
+        for response in dialog['responses']:
+            session.add(PlayerResponse(
+                **response, npc_id=dialog['npc_id'], stage_id=dialog['stage_id']))
 
     session.commit()
 
 
 def load_locations(session):
-    locations_data = get_json_data('locations.json')
-    location_instances = {}
-    for location in locations_data:
-        location_instance = Location(
-            id=location['id'], name=location['name'], description=location['description'])
-        session.add(location_instance)
-        session.flush()  # To ensure each location instance has an ID
-        location_instances[location['id']] = location_instance
+    locations = get_json_data('locations.json')
+    for location in locations:
+        session.add(Location(
+            id=location['id'], name=location['name'], description=location['description']))
 
-    for location in locations_data:
-        current_location = location_instances[location['id']]
-        for direction_id in location['directions']:
-            direction = location_instances[direction_id]
-            current_location.directions.append(direction)
-
+    for location in locations:
+        for direction in location['directions']:
+            session.add(
+                Direction(location_from_id=location['id'], location_to_id=direction))
     session.commit()
 
 
 def load_items(session):
     for item_data in get_json_data('items.json'):
-        item = Item(**item_data)
-        session.add(item)
+        session.add(Item(**item_data))
     session.commit()
 
 

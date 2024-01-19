@@ -3,14 +3,14 @@
         "npc_id": 1,
         "stage_id": 1,
         "npc_text": "Hello, stranger",
-        "player": [
+        "responses": [
             {
                 "text": "Hello",
-                "next_stage": 2
+                "next_stage_id": 2
             },
             {
                 "text": "Who are you?",
-                "next_stage": 3
+                "next_stage_id": 3
             }
         ]
     },
@@ -18,10 +18,10 @@
         "npc_id": 1,
         "stage_id": 2,
         "npc_text": "What can I do for you?",
-        "player": [
+        "responses": [
             {
                 "text": "I'm just walking by",
-                "next_stage": 4
+                "next_stage_id": 4
             },
             {
                 "text": "Nothing, I need to go"
@@ -32,7 +32,7 @@
         "npc_id": 1,
         "stage_id": 3,
         "npc_text": "I'm the mayor of this town",
-        "player": [
+        "responses": [
             {
                 "text": "Oh, good to know!"
             }
@@ -42,7 +42,7 @@
         "npc_id": 1,
         "stage_id": 4,
         "npc_text": "Ok, good luck!",
-        "player": [
+        "responses": [
             {
                 "text": "Good luck!"
             }
@@ -52,7 +52,7 @@
         "npc_id": 2,
         "stage_id": 1,
         "npc_text": "Clucking",
-        "player": [
+        "responses": [
             {
                 "text": "aww..."
             }

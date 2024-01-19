@@ -257,4 +257,6 @@ if __name__ == "__main__":
         format='%(asctime)s:%(levelname)s:%(message)s',
         level=logging.INFO
     )
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
     asyncio.run(main())

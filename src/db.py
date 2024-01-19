@@ -222,3 +222,9 @@ class Character(Base):
                     session.refresh(self, attribute_names=['inventory'])
             session.commit()
         return effect
+
+    def take(self, item: str):
+        pass
+
+    def give(self, npc: NPC, item: str):
+        pass
