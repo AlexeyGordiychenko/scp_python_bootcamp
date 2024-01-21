@@ -32,7 +32,12 @@ class MenuStates(StatesGroup):
 
 
 async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_markup: types.InlineKeyboardMarkup):
-    if html.unescape(msg) != html.unescape(callback_query.message.html_text) or reply_markup != callback_query.message.reply_markup:
+    current_btns = [
+        btn.text for row in reply_markup.inline_keyboard for btn in row]
+    msg_btns = [
+        btn.text for row in callback_query.message.reply_markup.inline_keyboard for btn in row]
+    if html.unescape(msg) != html.unescape(callback_query.message.html_text) \
+            or current_btns != msg_btns:
         await callback_query.message.edit_text(msg, reply_markup=reply_markup)
 
 
