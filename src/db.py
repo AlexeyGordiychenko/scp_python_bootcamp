@@ -1,6 +1,6 @@
 import os
-from sqlalchemy import Boolean, create_engine, Column, Integer, String, ForeignKey, Table, inspect, select, and_
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload, LoaderCallableStatus
+from sqlalchemy import Boolean, create_engine, Column, Integer, String, ForeignKey, Table, inspect, select, and_, null
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker, foreign, remote, selectinload, joinedload, LoaderCallableStatus, aliased
 from random import randint
 
 Base = declarative_base()
@@ -29,6 +29,7 @@ class NPC(Base):
     location = relationship("Location", back_populates="npcs")
     dialogs = relationship("Dialog", back_populates="npc",
                            order_by="Dialog.stage_id")
+    quest = relationship("Quest", back_populates="npc")
 
 
 class Enemy(Base):
@@ -122,6 +123,32 @@ class Item(Base):
     usable = Column(Boolean)
 
 
+class Quest(Base):
+    __tablename__ = 'quests'
+    npc_id = Column(Integer, ForeignKey('npcs.id'), primary_key=True)
+    task = Column(String)
+    required_item_id = Column(Integer, ForeignKey('items.id'))
+    required_count = Column(Integer)
+    reward_item_id = Column(Integer, ForeignKey('items.id'))
+    reward_count = Column(Integer)
+
+    npc = relationship('NPC', back_populates='quest')
+    required_item = relationship('Item', foreign_keys=[required_item_id])
+    reward_item = relationship('Item', foreign_keys=[reward_item_id])
+
+
+class Journal(Base):
+    __tablename__ = 'journals'
+    character_id = Column(Integer, ForeignKey(
+        'characters.id'), primary_key=True)
+    npc_id = Column(Integer, ForeignKey('npcs.id'), primary_key=True)
+    completed = Column(Boolean)
+
+    character = relationship('Character', back_populates='journal')
+    quest = relationship('Quest', primaryjoin=npc_id ==
+                         foreign(Quest.npc_id), viewonly=True, uselist=False)
+
+
 class Character(Base):
     __tablename__ = 'characters'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -138,6 +165,14 @@ class Character(Base):
         secondary="join(Inventory, Item, and_(Inventory.item_id == Item.id, Item.usable == True))",
         viewonly=True
     )
+
+    journal = relationship('Journal', back_populates='character')
+    journal_completed = relationship(
+        'Journal', primaryjoin='and_(Character.id == foreign(Journal.character_id), Journal.completed == True)', viewonly=True)
+
+    active_quests = relationship('Quest', secondary='join(Quest, Journal, and_(Journal.npc_id == foreign(Quest.npc_id), Journal.completed == False))', primaryjoin='Journal.character_id==Character.id',
+                                 secondaryjoin='Journal.npc_id==foreign(Quest.npc_id)',
+                                 viewonly=True)
 
     def __init__(self, id: int, name: str):
         self.id = id
@@ -228,6 +263,79 @@ class Character(Base):
                                     'inventory', 'inventory_usable'])
             session.commit()
         return effect
+
+    def get_active_quests(self):
+        with Session() as session:
+            session.add(self)
+            quests = self.active_quests
+            map(session.merge, quests)
+            if quests:
+                return [{'npc': quest.npc.name, 'location': quest.npc.location.name, 'task': quest.task} for quest in quests]
+
+    def get_npc_quest(self, npc: NPC):
+        with Session() as session:
+            data = session.execute(
+                select(Quest, Journal)
+                .join(
+                    Journal,
+                    and_(Quest.npc_id == Journal.npc_id,
+                         Journal.character_id == self.id),
+                    isouter=True
+                )
+                .where(Quest.npc_id == npc.id)
+            ).first()
+        return data if data else (None, None)
+
+    def accept_npc_quest(self, npc:  NPC):
+        with Session() as session:
+            session.expire_on_commit = False
+            session.add(self)
+            self.journal.append(Journal(
+                character_id=self.id, npc_id=npc.id, completed=False))
+            session.commit()
+            session.refresh(self, attribute_names=['active_quests'])
+
+    def complete_npc_quest(self, npc: NPC):
+        with Session() as session:
+            session.add(self)
+            item_required = aliased(Inventory)
+            item_reward = aliased(Inventory)
+            data = session.execute(
+                select(Journal, Quest, item_required, item_reward)
+                .join(Quest, Journal.npc_id == Quest.npc_id)
+                .join(item_required,
+                      and_(
+                          Journal.character_id == item_required.character_id,
+                          item_required.item_id == Quest.required_item_id,
+                          item_required.count >= Quest.required_count
+                      ))
+                .join(item_reward,
+                      and_(
+                          Journal.character_id == item_reward.character_id,
+                          item_reward.item_id == Quest.reward_item_id
+                      ), isouter=True)
+                .where(Journal.character_id == self.id)
+                .where(Journal.npc_id == npc.id)
+            ).first()
+            if data:
+                entry, quest, item_required, item_reward = data
+                session.expire_on_commit = False
+                entry.completed = True
+                if item_reward:
+                    item_reward.count += quest.reward_count
+                else:
+                    self.inventory.append(
+                        Inventory(item_id=quest.reward_item_id, count=quest.reward_count))
+                if item_required.count == quest.required_count:
+                    session.delete(item_required)
+                else:
+                    item_required.count -= quest.required_count
+                session.commit()
+                session.refresh(self, attribute_names=[
+                                'active_quests', 'inventory'])
+                return True
+            else:
+                return False
 
     def take(self, item: str):
         pass

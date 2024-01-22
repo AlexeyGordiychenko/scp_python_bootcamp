@@ -15,8 +15,6 @@ from os import getenv
 import db
 import kb
 import msg_text
-from sqlalchemy import inspect, select
-from sqlalchemy.orm import selectinload, LoaderCallableStatus
 import html
 
 load_dotenv()
@@ -45,7 +43,7 @@ async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_marku
 async def start_command(message: Message, state: FSMContext):
     with db.Session() as session:
         existing_character = session.execute(
-            select(db.Character)
+            db.select(db.Character)
             .where(db.Character.id == message.from_user.id)
         ).scalar_one_or_none()
     if existing_character:
@@ -173,8 +171,8 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
         builder = InlineKeyboardBuilder()
         for idx, npc in enumerate(npcs):
             builder.button(text=npc.name,
-                           callback_data=f'talk_to_npc:{idx}:1')
-        builder.button(text=msg_text.btn_back, callback_data='main_menu')
+                           callback_data=f'interact_with_npc:{idx}')
+        builder.add(kb.back_to_menu_btn)
         builder.adjust(1)
 
         await send_edit_message(callback_query, msg_text.msg_pick_npc, reply_markup=builder.as_markup())
@@ -182,8 +180,22 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
         await send_edit_message(callback_query, msg_text.msg_no_npcs_in_location, reply_markup=kb.main_menu)
 
 
-@router.callback_query(F.data.startswith("talk_to_npc:"))
-async def talk_to_npc(callback_query: CallbackQuery, state: FSMContext):
+@router.callback_query(F.data.startswith("interact_with_npc:"))
+async def interact_with_npc(callback_query: CallbackQuery, state: FSMContext, msg: str = None):
+    _, npc_idx = callback_query.data.split(':')
+    builder = InlineKeyboardBuilder()
+    builder.button(text=msg_text.btn_dialog,
+                   callback_data=f"npc_dialog:{npc_idx}:1")
+    builder.button(text=msg_text.btn_quest,
+                   callback_data=f"npc_quest:{npc_idx}")
+    builder.button(text=msg_text.btn_back, callback_data=f"get_npcs")
+    builder.button(text=msg_text.btn_menu, callback_data=f"main_menu")
+    builder.adjust(2)
+    await send_edit_message(callback_query, msg if msg else msg_text.msg_choose_action, reply_markup=builder.as_markup())
+
+
+@router.callback_query(F.data.startswith("npc_dialog:"))
+async def npc_dialog(callback_query: CallbackQuery, state: FSMContext):
     _, npc_idx, stage_id = callback_query.data.split(':')
     stage_id = int(stage_id)
     data = await state.get_data()
@@ -201,17 +213,74 @@ async def talk_to_npc(callback_query: CallbackQuery, state: FSMContext):
     for response in dialog.responses:
         if response.next_stage_id:
             builder.button(text=response.text,
-                           callback_data=f"talk_to_npc:{npc_idx}:{response.next_stage_id}")
+                           callback_data=f"npc_dialog:{npc_idx}:{response.next_stage_id}")
         else:
-            builder.button(text=response.text, callback_data='leave_npc')
+            builder.button(text=response.text,
+                           callback_data=f'interact_with_npc:{npc_idx}')
     builder.adjust(2)
 
     await send_edit_message(callback_query, msg_text.format_string(dialog.npc_text), reply_markup=builder.as_markup())
 
 
-@router.callback_query(F.data == "leave_npc")
-async def leave_npc(callback_query: CallbackQuery):
-    await send_edit_message(callback_query, msg_text.msg_leave_npc, reply_markup=kb.main_menu)
+@router.callback_query(F.data.startswith("npc_quest:"))
+async def npc_quest(callback_query: CallbackQuery, state: FSMContext):
+    _, npc_idx = callback_query.data.split(':')
+    data = await state.get_data()
+    character = data.get('character')
+    npc = character.whereami().npcs[int(npc_idx)]
+    quest, journal_entry = character.get_npc_quest(npc)
+    if not quest or (journal_entry and journal_entry.completed):
+        await send_edit_message(callback_query, msg_text.msg_npc_no_quest, reply_markup=callback_query.message.reply_markup)
+    else:
+        builder = InlineKeyboardBuilder()
+        if journal_entry:
+            builder.button(text=msg_text.btn_complete_quest,
+                           callback_data=f'npc_quest_complete:{npc_idx}')
+        else:
+            builder.button(text=msg_text.btn_accept,
+                           callback_data=f'npc_quest_accept:{npc_idx}')
+        builder.button(text=msg_text.btn_back,
+                       callback_data=f'interact_with_npc:{npc_idx}')
+        await send_edit_message(callback_query, msg_text.format_string(quest.task), reply_markup=builder.as_markup())
+
+
+@router.callback_query(F.data.startswith("npc_quest_accept:"))
+async def npc_quest_accept(callback_query: CallbackQuery, state: FSMContext):
+    _, npc_idx = callback_query.data.split(':')
+    data = await state.get_data()
+    character = data.get('character')
+    npc = character.whereami().npcs[int(npc_idx)]
+    character.accept_npc_quest(npc)
+
+    await interact_with_npc(callback_query, state)
+
+
+@router.callback_query(F.data.startswith("npc_quest_complete:"))
+async def npc_quest_complete(callback_query: CallbackQuery, state: FSMContext):
+    _, npc_idx = callback_query.data.split(':')
+    data = await state.get_data()
+    character = data.get('character')
+    npc = character.whereami().npcs[int(npc_idx)]
+    if character.complete_npc_quest(npc):
+        msg = msg_text.msg_quest_complete_succ
+    else:
+        msg = msg_text.msg_quest_complete_deny
+
+    await interact_with_npc(callback_query, state, msg)
+
+
+@router.callback_query(F.data == "get_quests")
+async def get_quests(callback_query: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    character = data.get('character')
+    quests = character.get_active_quests()
+    if quests:
+        quests_msg = '\n'.join([msg_text.msg_quest.format(
+            npc=quest.get('npc'), location=quest.get('location'), task=quest.get('task')) for quest in quests])
+        msg = f'{msg_text.msg_current_quests}{quests_msg}'
+    else:
+        msg = msg_text.msg_no_quests
+    await send_edit_message(callback_query, msg, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_enemies")

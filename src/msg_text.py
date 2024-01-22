@@ -12,7 +12,7 @@ msg_choose_item_to_use = "Choose an item to use:"
 msg_no_usable_items = "No usable items available."
 msg_change_location_ask = "Where do you want to go?"
 msg_change_location_succ = "You've moved to {location}.\nDescription: {desc}"
-msg_pick_npc = "Which NPC do you want to talk to:"
+msg_pick_npc = "Which NPC do you want to interact with?"
 msg_leave_npc = "You left."
 msg_no_npcs_in_location = "There are no NPCs in this location."
 msg_pick_enemy = "Which enemy do you want to fight:"
@@ -22,12 +22,23 @@ msg_fight_succ = "You've defeated the {enemy}!\nYour level is increased by 1.\nC
 msg_fight_succ_no_loot = "You've defeated the {enemy}!\nYour level is increased by 1.\nCurrent level is {level}."
 msg_fight_fail = "{enemy} has defeated you.\nYour health is reduced by 1.\nCurrent health is {hp}."
 msg_fight_die = "You died."
+msg_npc_no_quest = "No quests available."
+msg_no_quests = "You have no quests."
+msg_current_quests = "Current quests:\n"
+msg_quest = "{npc} at {location}: {task}"
+msg_quest_complete_succ = "You've completed the quest."
+msg_quest_complete_deny = "You don't have required items to complete this quest."
 
 msg_gen_welcome = "This is a bot to generate names for various characters and items."
 msg_gen_choose_type = "Choose a type:"
 msg_gen_choose_category = "Choose a category:"
 
+btn_menu = "Main Menu"
 btn_back = "Back"
+btn_dialog = "Dialogue"
+btn_quest = "Quest"
+btn_accept = "Accept"
+btn_complete_quest = "Complete"
 
 
 def format_string(input_string, line_length=MAX_LINE_WIDTH):

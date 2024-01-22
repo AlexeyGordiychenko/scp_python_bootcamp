@@ -1,0 +1,10 @@
+[
+    {
+        "npc_id": 1,
+        "task": "Bring 10 Animal Skins. I'll reward you with 5 Potions of Health.",
+        "required_item_id": 3,
+        "required_count": 10,
+        "reward_item_id": 4,
+        "reward_count": 5
+    }
+]
