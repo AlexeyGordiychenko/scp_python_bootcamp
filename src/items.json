@@ -18,5 +18,10 @@
         "id": 4,
         "name": "Potion of Health",
         "usable": true
+    },
+    {
+        "id": 5,
+        "name": "Plate Armor",
+        "usable": false
     }
 ]

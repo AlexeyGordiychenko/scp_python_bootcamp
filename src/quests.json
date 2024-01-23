@@ -6,5 +6,13 @@
         "required_count": 10,
         "reward_item_id": 4,
         "reward_count": 5
+    },
+    {
+        "npc_id": 3,
+        "task": "Bring 5 Trinkets. I'll reward you with a Plate Armor.",
+        "required_item_id": 2,
+        "required_count": 5,
+        "reward_item_id": 5,
+        "reward_count": 1
     }
 ]
