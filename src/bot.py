@@ -284,10 +284,18 @@ async def get_quests(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "get_enemies")
-async def get_enemies(callback_query: CallbackQuery, state: FSMContext):
-    buttons = await get_buttons_for_enemies(state)
-    if buttons:
-        await send_edit_message(callback_query, msg_text.msg_pick_enemy, reply_markup=buttons)
+async def get_enemies(callback_query: CallbackQuery, state: FSMContext, msg: str = None):
+    data = await state.get_data()
+    character = data.get('character')
+    enemies = character.whereami().get_enemies()
+    if enemies:
+        builder = InlineKeyboardBuilder()
+        for idx, enemy in enumerate(enemies):
+            builder.button(text=enemy.name,
+                           callback_data=f'fight:{idx}')
+        builder.add(kb.back_to_menu_btn)
+        builder.adjust(1)
+        await send_edit_message(callback_query, msg if msg else msg_text.msg_pick_enemy, reply_markup=builder.as_markup())
     else:
         await send_edit_message(callback_query, msg_text.msg_no_enemies_in_location, reply_markup=kb.main_menu)
 
@@ -309,23 +317,8 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
         result_text = msg_text.msg_fight_fail.format(
             enemy=enemy.name, hp=character.hp)
 
-    buttons = await get_buttons_for_enemies(state)
-    await send_edit_message(callback_query, f"{result_text}\n{msg_text.msg_pick_enemy}", reply_markup=buttons)
-
-
-async def get_buttons_for_enemies(state: FSMContext) -> InlineKeyboardMarkup:
-    data = await state.get_data()
-    character = data.get('character')
-    enemies = character.whereami().get_enemies()
-
-    if enemies:
-        builder = InlineKeyboardBuilder()
-        for idx, enemy in enumerate(enemies):
-            builder.button(text=enemy.name,
-                           callback_data=f'fight:{idx}')
-        builder.add(kb.back_to_menu_btn)
-        builder.adjust(1)
-        return builder.as_markup()
+    await get_enemies(callback_query, state,
+                      f"{result_text}\n{msg_text.msg_pick_enemy}")
 
 
 async def main() -> None:
