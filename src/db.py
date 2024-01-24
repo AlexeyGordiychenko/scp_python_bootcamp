@@ -106,7 +106,7 @@ class PlayerResponse(Base):
 
 
 class Inventory(Base):
-    __tablename__ = 'inventory'
+    __tablename__ = 'inventories'
     character_id = Column(Integer, ForeignKey(
         'characters.id'), primary_key=True)
     item_id = Column(Integer, ForeignKey('items.id'), primary_key=True)
