@@ -343,3 +343,8 @@ class Character(Base):
             session.add(self)
             session.delete(self)
             session.commit()
+
+    def get_inventory(self):
+        with Session() as session:
+            session.add(self)
+            return [{'item': item.item.name, 'count': item.count} for item in self.inventory]

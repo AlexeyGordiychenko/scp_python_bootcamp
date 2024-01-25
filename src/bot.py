@@ -94,10 +94,9 @@ async def get_stats(callback_query: CallbackQuery, state: FSMContext):
 async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
-    with db.Session() as session:
-        session.add(character)
-        inventory_msg = '\n'.join(
-            [f'{item.item.name}: {item.count}' for item in character.inventory])
+    character.get_inventory()
+    inventory_msg = '\n'.join(
+        [f"{entry.get('item')}: {entry.get('count')}" for entry in character.get_inventory()])
     await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
 
 
