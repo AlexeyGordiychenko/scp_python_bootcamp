@@ -1,12 +1,10 @@
 import asyncio
 import logging
-from random import randint
-from aiogram import F, BaseMiddleware, Bot, Dispatcher, Router, types, flags
+from aiogram import F, Bot, Dispatcher, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.filters.command import Command
-from aiogram.types import (Message, BotCommand, InlineKeyboardButton,
-                           InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, CallbackQuery, MenuButtonDefault)
+from aiogram.types import Message, CallbackQuery
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.storage.memory import MemoryStorage
