@@ -104,9 +104,7 @@ async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
 async def get_usable_items(callback_query: CallbackQuery, state: FSMContext, effect: str = None):
     data = await state.get_data()
     character = data.get('character')
-    with db.Session() as session:
-        session.add(character)
-        usable_items = character.inventory_usable
+    usable_items = character.get_usable_inventory()
     if not usable_items:
         if effect:
             msg = effect
@@ -132,7 +130,7 @@ async def use_item(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
     effect = msg_text.format_string(character.use_item(
-        character.inventory_usable[int(item_idx)]))
+        character.get_usable_inventory()[int(item_idx)]))
     await get_usable_items(callback_query, state, effect)
 
 

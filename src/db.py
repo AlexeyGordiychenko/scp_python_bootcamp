@@ -348,3 +348,8 @@ class Character(Base):
         with Session() as session:
             session.add(self)
             return [{'item': item.item.name, 'count': item.count} for item in self.inventory]
+    
+    def get_usable_inventory(self):
+        with Session() as session:
+            session.add(self)
+            return self.inventory_usable
