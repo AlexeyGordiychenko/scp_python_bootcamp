@@ -159,14 +159,15 @@ class Character(Base):
 
     location = relationship('Location', back_populates='characters')
     inventory = relationship(
-        'Inventory', back_populates='character')
+        'Inventory', back_populates='character', cascade='all, delete-orphan')
     inventory_usable = relationship(
         'Inventory',
         secondary="join(Inventory, Item, and_(Inventory.item_id == Item.id, Item.usable == True))",
         viewonly=True
     )
 
-    journal = relationship('Journal', back_populates='character')
+    journal = relationship(
+        'Journal', back_populates='character', cascade='all, delete-orphan')
     journal_completed = relationship(
         'Journal', primaryjoin='and_(Character.id == foreign(Journal.character_id), Journal.completed == True)', viewonly=True)
 
@@ -336,3 +337,9 @@ class Character(Base):
                 return True
             else:
                 return False
+
+    def die(self):
+        with Session() as session:
+            session.add(self)
+            session.delete(self)
+            session.commit()

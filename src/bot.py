@@ -31,7 +31,7 @@ class MenuStates(StatesGroup):
 
 async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_markup: types.InlineKeyboardMarkup):
     current_btns = [
-        btn.text for row in reply_markup.inline_keyboard for btn in row]
+        btn.text for row in reply_markup.inline_keyboard for btn in row] if reply_markup else []
     msg_btns = [
         btn.text for row in callback_query.message.reply_markup.inline_keyboard for btn in row]
     if html.unescape(msg) != html.unescape(callback_query.message.html_text) \
@@ -306,7 +306,15 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     character = data.get('character')
     enemy = character.whereami().get_enemies()[int(enemy_idx)]
-    res, loot = character.attack(enemy)
+    try:
+        res, loot = character.attack(enemy)
+    except Exception as e:
+        if str(e) == 'You died':
+            msg = msg_text.msg_fight_die.format(enemy=enemy.name)
+            character.die()
+            await send_edit_message(callback_query, msg, reply_markup=None)
+            return
+
     if res and enemy.loot_id:
         result_text = msg_text.msg_fight_succ.format(
             enemy=enemy.name, level=character.level, loot=loot.name)
