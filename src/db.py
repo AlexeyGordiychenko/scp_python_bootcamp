@@ -336,9 +336,3 @@ class Character(Base):
                 return True
             else:
                 return False
-
-    def take(self, item: str):
-        pass
-
-    def give(self, npc: NPC, item: str):
-        pass
