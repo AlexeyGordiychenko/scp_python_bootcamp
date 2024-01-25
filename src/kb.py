@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 back_to_menu_btn = InlineKeyboardButton(text="Back", callback_data='main_menu')
 back_menu = InlineKeyboardMarkup(inline_keyboard=[[back_to_menu_btn]])
