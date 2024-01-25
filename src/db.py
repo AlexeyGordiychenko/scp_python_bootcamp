@@ -348,8 +348,24 @@ class Character(Base):
         with Session() as session:
             session.add(self)
             return [{'item': item.item.name, 'count': item.count} for item in self.inventory]
-    
+
     def get_usable_inventory(self):
         with Session() as session:
             session.add(self)
             return self.inventory_usable
+
+
+def get_character(id):
+    with Session() as session:
+        return session.execute(
+            select(Character)
+            .where(Character.id == id)
+        ).scalar_one_or_none()
+
+
+def create_character(id, name):
+    new_character = Character(id=id, name=name)
+    with Session() as session:
+        session.add(new_character)
+        session.commit()
+    return new_character

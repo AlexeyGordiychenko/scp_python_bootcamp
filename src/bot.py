@@ -41,11 +41,7 @@ async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_marku
 
 @router.message(Command("start"))
 async def start_command(message: Message, state: FSMContext):
-    with db.Session() as session:
-        existing_character = session.execute(
-            db.select(db.Character)
-            .where(db.Character.id == message.from_user.id)
-        ).scalar_one_or_none()
+    existing_character = db.get_character(message.from_user.id)
     if existing_character:
         await state.update_data(character=existing_character)
         await message.answer(msg_text.msg_welcome.format(name=existing_character.name), reply_markup=kb.main_menu)
@@ -66,13 +62,8 @@ async def input_character_name(clbck: CallbackQuery, state: FSMContext):
 
 @router.message(MenuStates.create_character)
 async def create_character(message: Message, state: FSMContext):
-    name = message.text
-    new_character = db.Character(id=message.from_user.id, name=name)
-    with db.Session() as session:
-        session.add(new_character)
-        session.commit()
-
-        await state.update_data(character=new_character)
+    new_character = db.create_character(message.from_user.id, message.text)
+    await state.update_data(character=new_character)
     await message.answer(msg_text.msg_create_succ, reply_markup=kb.main_menu)
 
 
