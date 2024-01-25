@@ -334,7 +334,7 @@ class Character(Base):
                     item_required.count -= quest.required_count
                 session.commit()
                 session.refresh(self, attribute_names=[
-                                'active_quests', 'inventory'])
+                                'active_quests', 'inventory', 'inventory_usable'])
                 return True
             else:
                 return False
