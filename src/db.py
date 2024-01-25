@@ -254,15 +254,16 @@ class Character(Base):
             if item.item.usable:
                 session.expire_on_commit = False
                 session.add(self)
+                item = session.merge(item)
                 if item.item.name == 'Potion of Health':
                     self.heal()
                     effect = f"You've used {item.item.name}.\nYour health increased by 1."
                 item.count -= 1
                 if item.count <= 0:
                     session.delete(item)
-                    session.refresh(self, attribute_names=[
-                                    'inventory', 'inventory_usable'])
-            session.commit()
+                session.commit()
+                session.refresh(self, attribute_names=[
+                                'inventory', 'inventory_usable'])
         return effect
 
     def get_active_quests(self):
