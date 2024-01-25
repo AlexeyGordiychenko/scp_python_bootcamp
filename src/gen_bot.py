@@ -22,7 +22,7 @@ if TOKEN is None:
 
 router = Router()
 
-with open(os.path.join(os.path.dirname(__file__), 'gen_data.json'), 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), 'data/gen_data.json'), 'r') as f:
     data = json.load(f)
 
 lvl1_builder = ReplyKeyboardBuilder()

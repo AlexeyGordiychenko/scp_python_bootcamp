@@ -1,27 +1,28 @@
 import json
+import os
 from db import (Base, Item, Location, NPC, Enemy,
                 Dialog, PlayerResponse, Direction, Quest, engine, Session)
 
 
 def get_json_data(filename):
-    with open(filename, 'r') as file:
+    with open(os.path.join(os.path.dirname(__file__), f'data/{filename}.json'), 'r') as file:
         return json.load(file)
 
 
 def load_npcs(session):
-    for npc_data in get_json_data('npcs.json'):
+    for npc_data in get_json_data('npcs'):
         session.add(NPC(**npc_data))
     session.commit()
 
 
 def load_enemies(session):
-    for enemy_data in get_json_data('enemies.json'):
+    for enemy_data in get_json_data('enemies'):
         session.add(Enemy(**enemy_data))
     session.commit()
 
 
 def load_dialogs(session):
-    for dialog in get_json_data('dialogs.json'):
+    for dialog in get_json_data('dialogs'):
         session.add(Dialog(
             npc_id=dialog['npc_id'], stage_id=dialog['stage_id'], npc_text=dialog['npc_text']))
 
@@ -33,7 +34,7 @@ def load_dialogs(session):
 
 
 def load_locations(session):
-    locations = get_json_data('locations.json')
+    locations = get_json_data('locations')
     for location in locations:
         session.add(Location(
             id=location['id'], name=location['name'], description=location['description']))
@@ -46,13 +47,13 @@ def load_locations(session):
 
 
 def load_items(session):
-    for item_data in get_json_data('items.json'):
+    for item_data in get_json_data('items'):
         session.add(Item(**item_data))
     session.commit()
 
 
 def load_quests(session):
-    for quest_data in get_json_data('quests.json'):
+    for quest_data in get_json_data('quests'):
         session.add(Quest(**quest_data))
     session.commit()
 
