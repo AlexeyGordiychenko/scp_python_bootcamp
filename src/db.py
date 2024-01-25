@@ -270,7 +270,7 @@ class Character(Base):
         with Session() as session:
             session.add(self)
             quests = self.active_quests
-            map(session.merge, quests)
+            quests = list(map(session.merge, quests))
             if quests:
                 return [{'npc': quest.npc.name, 'location': quest.npc.location.name, 'task': quest.task} for quest in quests]
 
