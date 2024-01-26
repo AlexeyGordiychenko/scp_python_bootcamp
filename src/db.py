@@ -60,17 +60,17 @@ class Location(Base):
     enemies = relationship('Enemy', back_populates='location')
     characters = relationship('Character', back_populates='location')
 
-    def get_directions(self):
+    async def get_directions(self):
         with Session() as session:
             session.add(self)
             return self.directions
 
-    def get_npcs(self):
+    async def get_npcs(self):
         with Session() as session:
             session.add(self)
             return self.npcs
 
-    def get_enemies(self):
+    async def get_enemies(self):
         with Session() as session:
             session.add(self)
             return self.enemies
@@ -199,7 +199,7 @@ class Character(Base):
                 break
             stage = yield dialog
 
-    def attack(self, enemy: Enemy):
+    async def attack(self, enemy: Enemy):
         character_total = randint(1, 6) + int(self.level)
         enemy_total = randint(1, 6) + int(enemy.level)
         win = character_total >= enemy_total
@@ -208,7 +208,7 @@ class Character(Base):
             session.expire_on_commit = False
             session.add(self)
             if win:
-                self.advance_level()
+                await self.advance_level()
                 if enemy.loot_id:
                     existing_item = next(
                         (item for item in self.inventory if item.item_id == enemy.loot_id), None)
@@ -220,22 +220,22 @@ class Character(Base):
                     loot = session.execute(select(Item).where(
                         Item.id == enemy.loot_id)).scalar_one_or_none()
             else:
-                self.take_hit()
+                await self.take_hit()
             session.commit()
         return win, loot
 
-    def take_hit(self, value: int = 1):
+    async def take_hit(self, value: int = 1):
         self.hp -= value
         if self.hp <= 0:
             raise Exception("You died")
 
-    def heal(self, value: int = 1):
+    async def heal(self, value: int = 1):
         self.hp += value
 
-    def advance_level(self, value: int = 1):
+    async def advance_level(self, value: int = 1):
         self.level += value
 
-    def go(self, location_id):
+    async def go(self, location_id):
         with Session() as session:
             session.expire_on_commit = False
             session.add(self)
@@ -243,12 +243,12 @@ class Character(Base):
             session.commit()
             session.refresh(self, attribute_names=['location'])
 
-    def whereami(self):
+    async def whereami(self):
         with Session() as session:
             session.add(self)
             return self.location
 
-    def use_item(self, item: Inventory):
+    async def use_item(self, item: Inventory):
         effect = "You can't use this item."
         with Session() as session:
             if item.item.usable:
@@ -256,7 +256,7 @@ class Character(Base):
                 session.add(self)
                 item = session.merge(item)
                 if item.item.name == 'Potion of Health':
-                    self.heal()
+                    await self.heal()
                     effect = f"You've used {item.item.name}.\nYour health increased by 1."
                 item.count -= 1
                 if item.count <= 0:
@@ -266,7 +266,7 @@ class Character(Base):
                                 'inventory', 'inventory_usable'])
         return effect
 
-    def get_active_quests(self):
+    async def get_active_quests(self):
         with Session() as session:
             session.add(self)
             quests = self.active_quests
@@ -274,7 +274,7 @@ class Character(Base):
             if quests:
                 return [{'npc': quest.npc.name, 'location': quest.npc.location.name, 'task': quest.task} for quest in quests]
 
-    def get_npc_quest(self, npc: NPC):
+    async def get_npc_quest(self, npc: NPC):
         with Session() as session:
             data = session.execute(
                 select(Quest, Journal)
@@ -288,7 +288,7 @@ class Character(Base):
             ).first()
         return data if data else (None, None)
 
-    def accept_npc_quest(self, npc:  NPC):
+    async def accept_npc_quest(self, npc:  NPC):
         with Session() as session:
             session.expire_on_commit = False
             session.add(self)
@@ -297,7 +297,7 @@ class Character(Base):
             session.commit()
             session.refresh(self, attribute_names=['active_quests'])
 
-    def complete_npc_quest(self, npc: NPC):
+    async def complete_npc_quest(self, npc: NPC):
         with Session() as session:
             session.add(self)
             item_required = aliased(Inventory)
@@ -339,24 +339,24 @@ class Character(Base):
             else:
                 return False
 
-    def die(self):
+    async def die(self):
         with Session() as session:
             session.add(self)
             session.delete(self)
             session.commit()
 
-    def get_inventory(self):
+    async def get_inventory(self):
         with Session() as session:
             session.add(self)
             return [{'item': item.item.name, 'count': item.count} for item in self.inventory]
 
-    def get_usable_inventory(self):
+    async def get_usable_inventory(self):
         with Session() as session:
             session.add(self)
             return self.inventory_usable
 
 
-def get_character(id):
+async def get_character(id):
     with Session() as session:
         return session.execute(
             select(Character)
@@ -364,7 +364,7 @@ def get_character(id):
         ).scalar_one_or_none()
 
 
-def create_character(id, name):
+async def create_character(id, name):
     new_character = Character(id=id, name=name)
     with Session() as session:
         session.add(new_character)
