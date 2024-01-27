@@ -182,7 +182,7 @@ class Character(Base):
         self.level = 1
         self.location_id = 1
         self.inventory = [Inventory(item_id=1, count=1),
-                          Inventory(item_id=4, count=3)]
+                          Inventory(item_id=2, count=5)]
 
     def talk_to(self, npc: NPC):
         stage = 1
