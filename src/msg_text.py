@@ -28,6 +28,7 @@ msg_current_quests = "Current quests:\n"
 msg_quest = "{npc} at {location}: {task}"
 msg_quest_complete_succ = "You've completed the quest."
 msg_quest_complete_deny = "You don't have required items to complete this quest."
+msg_no_character = "An error occured. Please, use /start to reload."
 
 msg_gen_welcome = "This is a bot to generate names for various characters and items."
 msg_gen_choose_type = "Choose a type:"

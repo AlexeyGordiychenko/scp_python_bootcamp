@@ -23,11 +23,24 @@ if TOKEN is None:
 router = Router()
 
 
+def check_character(func):
+    async def wrapper(callback_query: CallbackQuery, state: FSMContext, character: db.Character = None, **kwargs):
+        data = await state.get_data()
+        if character is None:
+            character = data.get('character')
+        msg_id = data.get('msg_id')
+        if character is None or callback_query.message.message_id != msg_id:
+            await send_edit_message(callback_query, msg_text.msg_no_character)
+        else:
+            return await func(callback_query=callback_query, state=state, character=character, **kwargs)
+    return wrapper
+
+
 class MenuStates(StatesGroup):
     create_character = State()
 
 
-async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_markup: types.InlineKeyboardMarkup):
+async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_markup: types.InlineKeyboardMarkup = None):
     current_btns = [
         btn.text for row in reply_markup.inline_keyboard for btn in row] if reply_markup else []
     msg_btns = [
@@ -38,11 +51,17 @@ async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_marku
 
 
 @router.message(Command("start"))
-async def start_command(message: Message, state: FSMContext):
+async def start_command(message: Message, state: FSMContext, bot: Bot):
+    data = await state.get_data()
+    msg_id = data.get('msg_id')
+    if msg_id:
+        if not await bot.delete_message(message.chat.id, msg_id):
+            return
     existing_character = await db.get_character(message.from_user.id)
     if existing_character:
         await state.update_data(character=existing_character)
-        await message.answer(msg_text.msg_welcome.format(name=existing_character.name), reply_markup=kb.main_menu)
+        msg = await message.answer(msg_text.msg_welcome.format(name=existing_character.name), reply_markup=kb.main_menu)
+        await state.update_data(msg_id=msg.message_id)
     else:
         await message.answer(msg_text.msg_welcome_new, reply_markup=kb.create_character_menu)
 
@@ -55,44 +74,41 @@ async def main_menu(callback_query: CallbackQuery):
 @router.callback_query(F.data == "create_character")
 async def input_character_name(callback_query: CallbackQuery, state: FSMContext):
     await state.set_state(MenuStates.create_character)
-    await callback_query.message.answer(msg_text.msg_enter_name)
+    await send_edit_message(callback_query, msg_text.msg_enter_name)
 
 
 @router.message(MenuStates.create_character)
 async def create_character(message: Message, state: FSMContext):
     new_character = await db.create_character(message.from_user.id, message.text)
     await state.update_data(character=new_character)
-    await message.answer(msg_text.msg_create_succ, reply_markup=kb.main_menu)
+    msg = await message.answer(msg_text.msg_create_succ, reply_markup=kb.main_menu)
+    await state.update_data(msg_id=msg.message_id)
 
 
 @router.callback_query(F.data == "get_location")
-async def get_location(callback_query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def get_location(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     location = await character.whereami()
     await send_edit_message(callback_query, msg_text.msg_current_location.format(location=location.name), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_stats")
-async def get_stats(callback_query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def get_stats(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     await send_edit_message(callback_query, msg_text.msg_stats.format(health=character.hp, level=character.level), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_inventory")
-async def get_inventory(callback_query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def get_inventory(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     inventory_msg = '\n'.join(
         [f"{entry.get('item')}: {entry.get('count')}" for entry in await character.get_inventory()])
     await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_usable_items")
-async def get_usable_items(callback_query: CallbackQuery, state: FSMContext, effect: str = None):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def get_usable_items(callback_query: CallbackQuery,  character: db.Character, effect: str = None, **kwargs):
     usable_items = await character.get_usable_inventory()
     if not usable_items:
         if effect:
@@ -114,19 +130,17 @@ async def get_usable_items(callback_query: CallbackQuery, state: FSMContext, eff
 
 
 @router.callback_query(F.data.startswith("use_item:"))
-async def use_item(callback_query: CallbackQuery, state: FSMContext):
+@check_character
+async def use_item(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     _, item_idx = callback_query.data.split(':')
-    data = await state.get_data()
-    character = data.get('character')
     effect = msg_text.format_string(await character.use_item(
         character.inventory_usable[int(item_idx)]))
-    await get_usable_items(callback_query, state, effect)
+    await get_usable_items(callback_query=callback_query, character=character, effect=effect, **kwargs)
 
 
 @router.callback_query(F.data == "change_location")
-async def change_location(callback_query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def change_location(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     location = await character.whereami()
     directions = await location.get_directions()
     builder = InlineKeyboardBuilder()
@@ -140,9 +154,8 @@ async def change_location(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("set_location:"))
-async def set_location(callback_query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def set_location(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     _, location_id = callback_query.data.split(':')
     await character.go(location_id)
     location = await character.whereami()
@@ -150,9 +163,8 @@ async def set_location(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "get_npcs")
-async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def get_npcs(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     location = await character.whereami()
     npcs = await location.get_npcs()
 
@@ -170,7 +182,8 @@ async def get_npcs(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("interact_with_npc:"))
-async def interact_with_npc(callback_query: CallbackQuery, state: FSMContext, msg: str = None):
+@check_character
+async def interact_with_npc(callback_query: CallbackQuery,  msg: str = None, **kwargs):
     _, npc_idx = callback_query.data.split(':')
     builder = InlineKeyboardBuilder()
     builder.button(text=msg_text.btn_dialog,
@@ -184,17 +197,17 @@ async def interact_with_npc(callback_query: CallbackQuery, state: FSMContext, ms
 
 
 @router.callback_query(F.data.startswith("npc_dialog:"))
-async def npc_dialog(callback_query: CallbackQuery, state: FSMContext):
+@check_character
+async def npc_dialog(callback_query: CallbackQuery, state: FSMContext, character: db.Character, **kwargs):
     _, npc_idx, stage_id = callback_query.data.split(':')
     stage_id = int(stage_id)
-    data = await state.get_data()
     if stage_id == 1:
-        character = data.get('character')
         location = await character.whereami()
         npc = location.npcs[int(npc_idx)]
         dialogs = character.talk_to(npc)
         dialog = next(dialogs)
     else:
+        data = await state.get_data()
         dialogs = data.get('current_conversation')
         dialog = dialogs.send(stage_id)
 
@@ -213,10 +226,9 @@ async def npc_dialog(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("npc_quest:"))
-async def npc_quest(callback_query: CallbackQuery, state: FSMContext):
+@check_character
+async def npc_quest(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     _, npc_idx = callback_query.data.split(':')
-    data = await state.get_data()
-    character = data.get('character')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
     quest, journal_entry = await character.get_npc_quest(npc)
@@ -236,36 +248,31 @@ async def npc_quest(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("npc_quest_accept:"))
-async def npc_quest_accept(callback_query: CallbackQuery, state: FSMContext):
+@check_character
+async def npc_quest_accept(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     _, npc_idx = callback_query.data.split(':')
-    data = await state.get_data()
-    character = data.get('character')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
     await character.accept_npc_quest(npc)
-
-    await interact_with_npc(callback_query, state)
+    await interact_with_npc(callback_query=callback_query, character=character, **kwargs)
 
 
 @router.callback_query(F.data.startswith("npc_quest_complete:"))
-async def npc_quest_complete(callback_query: CallbackQuery, state: FSMContext):
+@check_character
+async def npc_quest_complete(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     _, npc_idx = callback_query.data.split(':')
-    data = await state.get_data()
-    character = data.get('character')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
     if await character.complete_npc_quest(npc):
         msg = msg_text.msg_quest_complete_succ
     else:
         msg = msg_text.msg_quest_complete_deny
-
-    await interact_with_npc(callback_query, state, msg)
+    await interact_with_npc(callback_query=callback_query, character=character, msg=msg, **kwargs)
 
 
 @router.callback_query(F.data == "get_quests")
-async def get_quests(callback_query: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def get_quests(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     quests = await character.get_active_quests()
     if quests:
         quests_msg = '\n'.join([msg_text.msg_quest.format(
@@ -277,9 +284,8 @@ async def get_quests(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "get_enemies")
-async def get_enemies(callback_query: CallbackQuery, state: FSMContext, msg: str = None):
-    data = await state.get_data()
-    character = data.get('character')
+@check_character
+async def get_enemies(callback_query: CallbackQuery,  character: db.Character, msg: str = None, **kwargs):
     location = await character.whereami()
     enemies = await location.get_enemies()
     if enemies:
@@ -295,10 +301,9 @@ async def get_enemies(callback_query: CallbackQuery, state: FSMContext, msg: str
 
 
 @router.callback_query(F.data.startswith("fight:"))
-async def fight(callback_query: CallbackQuery, state: FSMContext):
+@check_character
+async def fight(callback_query: CallbackQuery,  character: db.Character, **kwargs):
     _, enemy_idx = callback_query.data.split(':')
-    data = await state.get_data()
-    character = data.get('character')
     location = await character.whereami()
     enemy = location.enemies[int(enemy_idx)]
     try:
@@ -307,7 +312,7 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
         if str(e) == 'You died':
             msg = msg_text.msg_fight_die.format(enemy=enemy.name)
             await character.die()
-            await send_edit_message(callback_query, msg, reply_markup=None)
+            await send_edit_message(callback_query, msg)
             return
 
     if res and enemy.loot_id:
@@ -320,8 +325,8 @@ async def fight(callback_query: CallbackQuery, state: FSMContext):
         result_text = msg_text.msg_fight_fail.format(
             enemy=enemy.name, hp=character.hp)
 
-    await get_enemies(callback_query, state,
-                      f"{result_text}\n{msg_text.msg_pick_enemy}")
+    await get_enemies(callback_query=callback_query, character=character,
+                      msg=f"{result_text}\n{msg_text.msg_pick_enemy}", **kwargs)
 
 
 async def main() -> None:
