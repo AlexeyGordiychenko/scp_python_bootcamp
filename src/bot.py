@@ -285,7 +285,7 @@ async def get_enemies(callback_query: CallbackQuery, state: FSMContext, msg: str
     if enemies:
         builder = InlineKeyboardBuilder()
         for idx, enemy in enumerate(enemies):
-            builder.button(text=enemy.name,
+            builder.button(text=f"{enemy.name} (lvl {enemy.level})",
                            callback_data=f'fight:{idx}')
         builder.add(kb.back_to_menu_btn)
         builder.adjust(1)
