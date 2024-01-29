@@ -32,7 +32,7 @@ for lvl1 in data.keys():
     lvl2_builder = ReplyKeyboardBuilder()
     for lvl2 in data.get(lvl1).keys():
         lvl2_builder.add(KeyboardButton(text=lvl2))
-    lvl2_builder.add(KeyboardButton(text=msg_text.back))
+    lvl2_builder.add(KeyboardButton(text=msg_text.btn_back))
     lvl2_builder.adjust(1)
     lvl2_buttons[lvl1] = lvl2_builder.as_markup()
 lvl1_builder.adjust(1)
@@ -46,26 +46,26 @@ class MenuStates(StatesGroup):
 
 @router.message(Command("start"))
 async def start_command(message: Message, state: FSMContext):
-    await message.answer(msg_text.gen_welcome)
+    await message.answer(msg_text.msg_gen_welcome)
     await main_menu(message, state)
 
 
 async def main_menu(message: Message, state: FSMContext):
     await state.clear()
     await state.set_state(MenuStates.lvl1)
-    await message.answer(msg_text.gen_choose_type, reply_markup=lvl1_buttons)
+    await message.answer(msg_text.msg_gen_choose_type, reply_markup=lvl1_buttons)
 
 
 @router.message(MenuStates.lvl1)
 async def handle_lvl1(message: Message, state: FSMContext):
     await state.update_data(lvl1_choice=message.text)
     await state.set_state(MenuStates.lvl2)
-    await message.answer(msg_text.gen_choose_category, reply_markup=lvl2_buttons.get(message.text))
+    await message.answer(msg_text.msg_gen_choose_category, reply_markup=lvl2_buttons.get(message.text))
 
 
 @router.message(MenuStates.lvl2)
 async def handle_lvl2(message: Message, state: FSMContext):
-    if message.text == msg_text.back:
+    if message.text == msg_text.btn_back:
         await main_menu(message, state)
         return
     choices = await state.get_data()
