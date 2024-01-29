@@ -239,6 +239,9 @@ async def npc_quest(callback_query: CallbackQuery,  character: db.Protagonist, *
         if journal_entry:
             builder.button(text=msg_text.btn_complete_quest,
                            callback_data=f'npc_quest_complete:{npc_idx}')
+        elif quest.required_level > character.level:
+            builder.button(text=msg_text.btn_quest_not_available.format(
+                level=quest.required_level), callback_data='no_handling')
         else:
             builder.button(text=msg_text.btn_accept,
                            callback_data=f'npc_quest_accept:{npc_idx}')

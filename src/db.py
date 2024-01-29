@@ -127,6 +127,7 @@ class Quest(Base):
     __tablename__ = 'quests'
     npc_id = Column(Integer, ForeignKey('npcs.id'), primary_key=True)
     task = Column(String)
+    required_level = Column(Integer)
     required_item_id = Column(Integer, ForeignKey('items.id'))
     required_count = Column(Integer)
     reward_item_id = Column(Integer, ForeignKey('items.id'))

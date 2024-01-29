@@ -40,6 +40,7 @@ btn_dialog = "Dialogue"
 btn_quest = "Quest"
 btn_accept = "Accept"
 btn_complete_quest = "Complete"
+btn_quest_not_available = "Not available (required level {level})"
 
 
 def format_string(input_string, line_length=MAX_LINE_WIDTH):
