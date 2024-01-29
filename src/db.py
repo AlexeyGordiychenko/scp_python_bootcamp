@@ -58,7 +58,7 @@ class Location(Base):
     )
     npcs = relationship('NPC', back_populates='location')
     enemies = relationship('Enemy', back_populates='location')
-    characters = relationship('Character', back_populates='location')
+    characters = relationship('Protagonist', back_populates='location')
 
     async def get_directions(self):
         with Session() as session:
@@ -112,7 +112,7 @@ class Inventory(Base):
     item_id = Column(Integer, ForeignKey('items.id'), primary_key=True)
     count = Column(Integer)
 
-    character = relationship('Character', back_populates='inventory')
+    character = relationship('Protagonist', back_populates='inventory')
     item = relationship('Item', lazy='selectin')
 
 
@@ -144,12 +144,12 @@ class Journal(Base):
     npc_id = Column(Integer, ForeignKey('npcs.id'), primary_key=True)
     completed = Column(Boolean)
 
-    character = relationship('Character', back_populates='journal')
+    character = relationship('Protagonist', back_populates='journal')
     quest = relationship('Quest', primaryjoin=npc_id ==
                          foreign(Quest.npc_id), viewonly=True, uselist=False)
 
 
-class Character(Base):
+class Protagonist(Base):
     __tablename__ = 'characters'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
@@ -169,9 +169,9 @@ class Character(Base):
     journal = relationship(
         'Journal', back_populates='character', cascade='all, delete-orphan')
     journal_completed = relationship(
-        'Journal', primaryjoin='and_(Character.id == foreign(Journal.character_id), Journal.completed == True)', viewonly=True)
+        'Journal', primaryjoin='and_(Protagonist.id == foreign(Journal.character_id), Journal.completed == True)', viewonly=True)
 
-    active_quests = relationship('Quest', secondary='join(Quest, Journal, and_(Journal.npc_id == foreign(Quest.npc_id), Journal.completed == False))', primaryjoin='Journal.character_id==Character.id',
+    active_quests = relationship('Quest', secondary='join(Quest, Journal, and_(Journal.npc_id == foreign(Quest.npc_id), Journal.completed == False))', primaryjoin='Journal.character_id==Protagonist.id',
                                  secondaryjoin='Journal.npc_id==foreign(Quest.npc_id)',
                                  viewonly=True)
 
@@ -359,13 +359,13 @@ class Character(Base):
 async def get_character(id):
     with Session() as session:
         return session.execute(
-            select(Character)
-            .where(Character.id == id)
+            select(Protagonist)
+            .where(Protagonist.id == id)
         ).scalar_one_or_none()
 
 
 async def create_character(id, name):
-    new_character = Character(id=id, name=name)
+    new_character = Protagonist(id=id, name=name)
     with Session() as session:
         session.add(new_character)
         session.commit()

@@ -24,7 +24,7 @@ router = Router()
 
 
 def check_character(func):
-    async def wrapper(callback_query: CallbackQuery, state: FSMContext, character: db.Character = None, **kwargs):
+    async def wrapper(callback_query: CallbackQuery, state: FSMContext, character: db.Protagonist = None, **kwargs):
         data = await state.get_data()
         if character is None:
             character = data.get('character')
@@ -87,20 +87,20 @@ async def create_character(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "get_location")
 @check_character
-async def get_location(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def get_location(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     location = await character.whereami()
     await send_edit_message(callback_query, msg_text.msg_current_location.format(location=location.name), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_stats")
 @check_character
-async def get_stats(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def get_stats(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     await send_edit_message(callback_query, msg_text.msg_stats.format(health=character.hp, level=character.level), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_inventory")
 @check_character
-async def get_inventory(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def get_inventory(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     inventory_msg = '\n'.join(
         [f"{entry.get('item')}: {entry.get('count')}" for entry in await character.get_inventory()])
     await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
@@ -108,7 +108,7 @@ async def get_inventory(callback_query: CallbackQuery,  character: db.Character,
 
 @router.callback_query(F.data == "get_usable_items")
 @check_character
-async def get_usable_items(callback_query: CallbackQuery,  character: db.Character, effect: str = None, **kwargs):
+async def get_usable_items(callback_query: CallbackQuery,  character: db.Protagonist, effect: str = None, **kwargs):
     usable_items = await character.get_usable_inventory()
     if not usable_items:
         if effect:
@@ -131,7 +131,7 @@ async def get_usable_items(callback_query: CallbackQuery,  character: db.Charact
 
 @router.callback_query(F.data.startswith("use_item:"))
 @check_character
-async def use_item(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def use_item(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     _, item_idx = callback_query.data.split(':')
     effect = msg_text.format_string(await character.use_item(
         character.inventory_usable[int(item_idx)]))
@@ -140,7 +140,7 @@ async def use_item(callback_query: CallbackQuery,  character: db.Character, **kw
 
 @router.callback_query(F.data == "change_location")
 @check_character
-async def change_location(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def change_location(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     location = await character.whereami()
     directions = await location.get_directions()
     builder = InlineKeyboardBuilder()
@@ -155,7 +155,7 @@ async def change_location(callback_query: CallbackQuery,  character: db.Characte
 
 @router.callback_query(F.data.startswith("set_location:"))
 @check_character
-async def set_location(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def set_location(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     _, location_id = callback_query.data.split(':')
     await character.go(location_id)
     location = await character.whereami()
@@ -164,7 +164,7 @@ async def set_location(callback_query: CallbackQuery,  character: db.Character, 
 
 @router.callback_query(F.data == "get_npcs")
 @check_character
-async def get_npcs(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def get_npcs(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     location = await character.whereami()
     npcs = await location.get_npcs()
 
@@ -198,7 +198,7 @@ async def interact_with_npc(callback_query: CallbackQuery,  msg: str = None, **k
 
 @router.callback_query(F.data.startswith("npc_dialog:"))
 @check_character
-async def npc_dialog(callback_query: CallbackQuery, state: FSMContext, character: db.Character, **kwargs):
+async def npc_dialog(callback_query: CallbackQuery, state: FSMContext, character: db.Protagonist, **kwargs):
     _, npc_idx, stage_id = callback_query.data.split(':')
     stage_id = int(stage_id)
     if stage_id == 1:
@@ -227,7 +227,7 @@ async def npc_dialog(callback_query: CallbackQuery, state: FSMContext, character
 
 @router.callback_query(F.data.startswith("npc_quest:"))
 @check_character
-async def npc_quest(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def npc_quest(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     _, npc_idx = callback_query.data.split(':')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
@@ -249,7 +249,7 @@ async def npc_quest(callback_query: CallbackQuery,  character: db.Character, **k
 
 @router.callback_query(F.data.startswith("npc_quest_accept:"))
 @check_character
-async def npc_quest_accept(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def npc_quest_accept(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     _, npc_idx = callback_query.data.split(':')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
@@ -259,7 +259,7 @@ async def npc_quest_accept(callback_query: CallbackQuery,  character: db.Charact
 
 @router.callback_query(F.data.startswith("npc_quest_complete:"))
 @check_character
-async def npc_quest_complete(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def npc_quest_complete(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     _, npc_idx = callback_query.data.split(':')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
@@ -272,7 +272,7 @@ async def npc_quest_complete(callback_query: CallbackQuery,  character: db.Chara
 
 @router.callback_query(F.data == "get_quests")
 @check_character
-async def get_quests(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def get_quests(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     quests = await character.get_active_quests()
     if quests:
         quests_msg = '\n'.join([msg_text.msg_quest.format(
@@ -285,7 +285,7 @@ async def get_quests(callback_query: CallbackQuery,  character: db.Character, **
 
 @router.callback_query(F.data == "get_enemies")
 @check_character
-async def get_enemies(callback_query: CallbackQuery,  character: db.Character, msg: str = None, **kwargs):
+async def get_enemies(callback_query: CallbackQuery,  character: db.Protagonist, msg: str = None, **kwargs):
     location = await character.whereami()
     enemies = await location.get_enemies()
     if enemies:
@@ -302,7 +302,7 @@ async def get_enemies(callback_query: CallbackQuery,  character: db.Character, m
 
 @router.callback_query(F.data.startswith("fight:"))
 @check_character
-async def fight(callback_query: CallbackQuery,  character: db.Character, **kwargs):
+async def fight(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
     _, enemy_idx = callback_query.data.split(':')
     location = await character.whereami()
     enemy = location.enemies[int(enemy_idx)]
