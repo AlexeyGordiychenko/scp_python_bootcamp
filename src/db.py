@@ -17,10 +17,12 @@ directions_association = Table('directions', Base.metadata,
 
 
 class Direction(Base):
+    """A class that represents a direction between two locations."""
     __tablename__ = 'directions'
 
 
 class NPC(Base):
+    """A class that represents a non-player character (NPC) in the game."""
     __tablename__ = 'npcs'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -33,6 +35,7 @@ class NPC(Base):
 
 
 class Enemy(Base):
+    """A class that represents an enemy in the game."""
     __tablename__ = 'enemies'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -45,6 +48,7 @@ class Enemy(Base):
 
 
 class Location(Base):
+    """A class that represents a location in the game."""
     __tablename__ = 'locations'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -61,22 +65,26 @@ class Location(Base):
     characters = relationship('Protagonist', back_populates='location')
 
     async def get_directions(self):
+        """A method that returns the directions from this location."""
         with Session() as session:
             session.add(self)
             return self.directions
 
     async def get_npcs(self):
+        """A method that returns the NPCs in this location."""
         with Session() as session:
             session.add(self)
             return self.npcs
 
     async def get_enemies(self):
+        """A method that returns the enemies in this location."""
         with Session() as session:
             session.add(self)
             return self.enemies
 
 
 class Dialog(Base):
+    """A class that represents a dialog between an NPC and the player."""
     __tablename__ = 'dialogs'
     npc_id = Column(Integer, ForeignKey('npcs.id'), primary_key=True)
     stage_id = Column(Integer, nullable=False, index=True, primary_key=True)
@@ -90,6 +98,7 @@ class Dialog(Base):
 
 
 class PlayerResponse(Base):
+    """A class that represents a player's response to a dialog."""
     __tablename__ = 'player_responses'
     id = Column(Integer, primary_key=True, autoincrement=True)
     npc_id = Column(Integer, ForeignKey('npcs.id'))
@@ -106,6 +115,7 @@ class PlayerResponse(Base):
 
 
 class Inventory(Base):
+    """A class that represents an inventory of items for a character."""
     __tablename__ = 'inventories'
     character_id = Column(Integer, ForeignKey(
         'characters.id'), primary_key=True)
@@ -117,6 +127,7 @@ class Inventory(Base):
 
 
 class Item(Base):
+    """A class that represents an item in the game."""
     __tablename__ = 'items'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -124,6 +135,7 @@ class Item(Base):
 
 
 class Quest(Base):
+    """A class that represents a quest given by an NPC."""
     __tablename__ = 'quests'
     npc_id = Column(Integer, ForeignKey('npcs.id'), primary_key=True)
     task = Column(String)
@@ -139,6 +151,7 @@ class Quest(Base):
 
 
 class Journal(Base):
+    """A class that represents a journal entry for a character's quest."""
     __tablename__ = 'journals'
     character_id = Column(Integer, ForeignKey(
         'characters.id'), primary_key=True)
@@ -151,6 +164,7 @@ class Journal(Base):
 
 
 class Protagonist(Base):
+    """A class that represents the main character of the game."""
     __tablename__ = 'characters'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
@@ -177,6 +191,11 @@ class Protagonist(Base):
                                  viewonly=True)
 
     def __init__(self, id: int, name: str):
+        """A method that initializes a new protagonist object.
+
+        :param int id: The id of the character.
+        :param str name: The name of the character.
+        """
         self.id = id
         self.name: str = name
         self.hp: int = 10
@@ -186,6 +205,13 @@ class Protagonist(Base):
                           Inventory(item_id=2, count=5)]
 
     def talk_to(self, npc: NPC):
+        """A method that initiates a dialog with an NPC.
+
+        :param NPC npc: The NPC to talk to.
+
+        :returns:
+            Dialog: The dialog object for each stage of the conversation.
+        """
         stage = 1
         with Session() as session:
             dialogs = session.execute(
@@ -201,6 +227,13 @@ class Protagonist(Base):
             stage = yield dialog
 
     async def attack(self, enemy: Enemy):
+        """A method that performs an attack on an enemy.
+
+        :param Enemy enemy: The enemy to attack.
+
+        :returns:
+            tuple: A tuple of (win, loot), where win is a boolean indicating if the attack was successful, and loot is an Item object or None if the enemy had no loot.
+        """
         character_total = randint(1, 6) + int(self.level)
         enemy_total = randint(1, 6) + int(enemy.level)
         win = character_total >= enemy_total
@@ -226,17 +259,36 @@ class Protagonist(Base):
         return win, loot
 
     async def take_hit(self, value: int = 1):
+        """A method that reduces the character's health by a given value.
+
+        :param int value: (optional) The amount of damage to take. Defaults to 1.
+
+        :raises:
+            Exception: If the character's health reaches zero or below.
+        """
         self.hp -= value
         if self.hp <= 0:
             raise Exception("You died")
 
     async def heal(self, value: int = 1):
+        """A method that increases the character's health by a given value.
+
+        :param int value: (optional) The amount of healing to receive. Defaults to 1.
+        """
         self.hp += value
 
     async def advance_level(self, value: int = 1):
+        """A method that increases the character's level by a given value.
+
+        :param int value: (optional) The amount of levels to gain. Defaults to 1.
+        """
         self.level += value
 
     async def go(self, location_id):
+        """A method that changes the character's location to a given location id.
+
+        :param int lon_id (int): The id of the destination location.
+        """
         with Session() as session:
             session.expire_on_commit = False
             session.add(self)
@@ -245,11 +297,23 @@ class Protagonist(Base):
             session.refresh(self, attribute_names=['location'])
 
     async def whereami(self):
+        """A method that returns the character's current location.
+
+        :returns:
+            Location: The location object of the character's current location.
+        """
         with Session() as session:
             session.add(self)
             return self.location
 
     async def use_item(self, item: Inventory):
+        """A method that uses an item from the character's inventory.
+
+        :param Inventory item: The inventory object of the item to use.
+
+        :returns:
+            str: A message describing the effect of using the item.
+        """
         effect = "You can't use this item."
         with Session() as session:
             if item.item.usable:
@@ -268,6 +332,11 @@ class Protagonist(Base):
         return effect
 
     async def get_active_quests(self):
+        """A method that returns the character's active quests.
+
+        :returns:
+            list: A list of dictionaries, each containing the npc, location, and task of a quest.
+        """
         with Session() as session:
             session.add(self)
             quests = self.active_quests
@@ -276,6 +345,13 @@ class Protagonist(Base):
                 return [{'npc': quest.npc.name, 'location': quest.npc.location.name, 'task': quest.task} for quest in quests]
 
     async def get_npc_quest(self, npc: NPC):
+        """A method that returns the quest and journal entry for a given NPC.
+
+        :param NPC npc: The NPC to get the quest from.
+
+        :returns:
+            tuple: A tuple of (Quest, Journal) or (None, None) if the NPC has no quest.
+        """
         with Session() as session:
             data = session.execute(
                 select(Quest, Journal)
@@ -290,6 +366,10 @@ class Protagonist(Base):
         return data if data else (None, None)
 
     async def accept_npc_quest(self, npc:  NPC):
+        """A method that accepts a quest from an NPC and adds it to the character's journal.
+
+        :param NPC npc: The NPC to accept the quest from.
+        """
         with Session() as session:
             session.expire_on_commit = False
             session.add(self)
@@ -299,6 +379,13 @@ class Protagonist(Base):
             session.refresh(self, attribute_names=['active_quests'])
 
     async def complete_npc_quest(self, npc: NPC):
+        """A method that completes a quest from an NPC and updates the character's journal and inventory.
+
+        :param NPC npc: The NPC to complete the quest for.
+
+        :returns:
+            bool: True if the quest was completed successfully, False otherwise.
+        """
         with Session() as session:
             session.add(self)
             item_required = aliased(Inventory)
@@ -341,23 +428,41 @@ class Protagonist(Base):
                 return False
 
     async def die(self):
+        """A method that deletes the character from the database."""
         with Session() as session:
             session.add(self)
             session.delete(self)
             session.commit()
 
     async def get_inventory(self):
+        """A method that returns the character's inventory.
+
+        :returns:
+            list: A list of dictionaries, each containing the item name and count.
+        """
         with Session() as session:
             session.add(self)
             return [{'item': item.item.name, 'count': item.count} for item in self.inventory]
 
     async def get_usable_inventory(self):
+        """A method that returns the character's usable inventory.
+
+        :returns:
+            list: A list of Inventory objects, each representing a usable item.
+        """
         with Session() as session:
             session.add(self)
             return self.inventory_usable
 
 
 async def get_character(id):
+    """A function that returns a character object by id.
+
+    :param int id: The id of the character.
+
+    :returns:
+        Protagonist: The character object or None if not found.
+    """
     with Session() as session:
         return session.execute(
             select(Protagonist)
@@ -366,6 +471,14 @@ async def get_character(id):
 
 
 async def create_character(id, name):
+    """A function that creates a new character object and adds it to the database.
+
+    :param int id: The id of the character.
+    :param str name: The name of the character.
+
+    :returns:
+        Protagonist: The new character object.
+    """
     new_character = Protagonist(id=id, name=name)
     with Session() as session:
         session.add(new_character)

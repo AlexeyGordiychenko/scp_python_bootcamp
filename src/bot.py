@@ -14,6 +14,7 @@ import db
 import kb
 import msg_text
 import html
+from functools import wraps
 
 load_dotenv()
 TOKEN = getenv('TOKEN')
@@ -24,6 +25,16 @@ router = Router()
 
 
 def check_character(func):
+    """
+    A decorator that checks if the user has a character and if the callback query is from the same message as the character menu.
+    If not, it sends a message that the character is not found and returns.
+
+    :param function func: The function to be decorated.
+
+    :returns:
+        function: The wrapper function that performs the check.
+    """
+    @wraps(func)
     async def wrapper(callback_query: CallbackQuery, state: FSMContext, character: db.Protagonist = None, **kwargs):
         data = await state.get_data()
         if character is None:
@@ -37,10 +48,20 @@ def check_character(func):
 
 
 class MenuStates(StatesGroup):
+    """
+    A class that represents the states of the character creation menu.
+    """
     create_character = State()
 
 
 async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_markup: types.InlineKeyboardMarkup = None):
+    """
+    A helper function that edits the message with the given text and reply markup, if they are different from the current ones.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param srt msg: The text to be sent.
+    :param types.InlineKeyboardMarkup reply_markup: (optional) The reply markup to be sent. Defaults to None.
+    """
     current_btns = [
         btn.text for row in reply_markup.inline_keyboard for btn in row] if reply_markup else []
     msg_btns = [
@@ -52,6 +73,14 @@ async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_marku
 
 @router.message(Command("start"))
 async def start_command(message: Message, state: FSMContext, bot: Bot):
+    """
+    A handler function that handles the /start command from the user.
+    It checks if the user has an existing character, and if not, it prompts them to create one.
+
+    :param Message message: The message from the user.
+    :param FSMContext state: The finite state machine context for the user.
+    :param Bot bot: The bot instance.
+    """
     data = await state.get_data()
     msg_id = data.get('msg_id')
     if msg_id:
@@ -68,17 +97,37 @@ async def start_command(message: Message, state: FSMContext, bot: Bot):
 
 @router.callback_query(F.data == "main_menu")
 async def main_menu(callback_query: CallbackQuery):
+    """
+    A handler function that handles the callback query for the main menu button.
+    It edits the message with the main menu text and reply markup.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    """
     await send_edit_message(callback_query, msg_text.msg_choose_action, reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "create_character")
 async def input_character_name(callback_query: CallbackQuery, state: FSMContext):
+    """
+    A handler function that handles the callback query for the create character button.
+    It sets the state to the create character state and edits the message with the prompt for the character name.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param FSMContext state: The finite state machine context for the user.
+    """
     await state.set_state(MenuStates.create_character)
     await send_edit_message(callback_query, msg_text.msg_enter_name)
 
 
 @router.message(MenuStates.create_character)
 async def create_character(message: Message, state: FSMContext):
+    """
+    A handler function that handles the message from the user in the create character state.
+    It creates a new character for the user with the given name and sends a message with the main menu.
+
+    :param Message message: The message from the user.
+    :param FSMContext state: The finite state machine context for the user.
+    """
     new_character = await db.create_character(message.from_user.id, message.text)
     await state.update_data(character=new_character)
     msg = await message.answer(msg_text.msg_create_succ, reply_markup=kb.main_menu)
@@ -88,6 +137,14 @@ async def create_character(message: Message, state: FSMContext):
 @router.callback_query(F.data == "get_location")
 @check_character
 async def get_location(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the get location button.
+    It edits the message with the current location of the character.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     location = await character.whereami()
     await send_edit_message(callback_query, msg_text.msg_current_location.format(location=location.name), reply_markup=kb.main_menu)
 
@@ -95,12 +152,28 @@ async def get_location(callback_query: CallbackQuery,  character: db.Protagonist
 @router.callback_query(F.data == "get_stats")
 @check_character
 async def get_stats(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the get stats button.
+    It edits the message with the current stats of the character.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     await send_edit_message(callback_query, msg_text.msg_stats.format(health=character.hp, level=character.level), reply_markup=kb.main_menu)
 
 
 @router.callback_query(F.data == "get_inventory")
 @check_character
 async def get_inventory(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the get inventory button.
+    It edits the message with the current inventory of the character.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     inventory_msg = '\n'.join(
         [f"{entry.get('item')}: {entry.get('count')}" for entry in await character.get_inventory()])
     await send_edit_message(callback_query, f'{msg_text.msg_current_inventory}{inventory_msg}', reply_markup=kb.main_menu)
@@ -109,6 +182,15 @@ async def get_inventory(callback_query: CallbackQuery,  character: db.Protagonis
 @router.callback_query(F.data == "get_usable_items")
 @check_character
 async def get_usable_items(callback_query: CallbackQuery,  character: db.Protagonist, effect: str = None, **kwargs):
+    """
+    A handler function that handles the callback query for the get usable items button.
+    It edits the message with the current usable items of the character and the effect of using an item, if any.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param str effect: (optional) The effect of using an item. Defaults to None.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     usable_items = await character.get_usable_inventory()
     if not usable_items:
         if effect:
@@ -132,6 +214,14 @@ async def get_usable_items(callback_query: CallbackQuery,  character: db.Protago
 @router.callback_query(F.data.startswith("use_item:"))
 @check_character
 async def use_item(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for using an item.
+    It edits the message with the effect of using the item and updates the character's inventory.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, item_idx = callback_query.data.split(':')
     effect = msg_text.format_string(await character.use_item(
         character.inventory_usable[int(item_idx)]))
@@ -141,6 +231,14 @@ async def use_item(callback_query: CallbackQuery,  character: db.Protagonist, **
 @router.callback_query(F.data == "change_location")
 @check_character
 async def change_location(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the change location button.
+    It edits the message with the available directions for the character to move.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     location = await character.whereami()
     directions = await location.get_directions()
     builder = InlineKeyboardBuilder()
@@ -156,6 +254,14 @@ async def change_location(callback_query: CallbackQuery,  character: db.Protagon
 @router.callback_query(F.data.startswith("set_location:"))
 @check_character
 async def set_location(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for setting the location.
+    It edits the message with the new location of the character and its description.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, location_id = callback_query.data.split(':')
     await character.go(location_id)
     location = await character.whereami()
@@ -165,6 +271,14 @@ async def set_location(callback_query: CallbackQuery,  character: db.Protagonist
 @router.callback_query(F.data == "get_npcs")
 @check_character
 async def get_npcs(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the get npcs button.
+    It edits the message with the npcs in the current location of the character and the options to interact with them.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     location = await character.whereami()
     npcs = await location.get_npcs()
 
@@ -184,6 +298,14 @@ async def get_npcs(callback_query: CallbackQuery,  character: db.Protagonist, **
 @router.callback_query(F.data.startswith("interact_with_npc:"))
 @check_character
 async def interact_with_npc(callback_query: CallbackQuery,  msg: str = None, **kwargs):
+    """
+    A handler function that handles the callback query for interacting with an npc.
+    It edits the message with the options to talk, get a quest, or go back.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param str msg: (optional) The message to be sent. Defaults to None.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, npc_idx = callback_query.data.split(':')
     builder = InlineKeyboardBuilder()
     builder.button(text=msg_text.btn_dialog,
@@ -199,6 +321,15 @@ async def interact_with_npc(callback_query: CallbackQuery,  msg: str = None, **k
 @router.callback_query(F.data.startswith("npc_dialog:"))
 @check_character
 async def npc_dialog(callback_query: CallbackQuery, state: FSMContext, character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the npc dialog.
+    It edits the message with the dialog text and the possible responses.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param FSMContext state: The finite state machine context for the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, npc_idx, stage_id = callback_query.data.split(':')
     stage_id = int(stage_id)
     if stage_id == 1:
@@ -228,6 +359,14 @@ async def npc_dialog(callback_query: CallbackQuery, state: FSMContext, character
 @router.callback_query(F.data.startswith("npc_quest:"))
 @check_character
 async def npc_quest(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the npc quest.
+    It edits the message with the quest task and the options to accept, complete, or go back.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, npc_idx = callback_query.data.split(':')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
@@ -253,6 +392,14 @@ async def npc_quest(callback_query: CallbackQuery,  character: db.Protagonist, *
 @router.callback_query(F.data.startswith("npc_quest_accept:"))
 @check_character
 async def npc_quest_accept(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for accepting a quest.
+    It edits the message with the confirmation of accepting the quest and updates the character's journal.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, npc_idx = callback_query.data.split(':')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
@@ -263,6 +410,14 @@ async def npc_quest_accept(callback_query: CallbackQuery,  character: db.Protago
 @router.callback_query(F.data.startswith("npc_quest_complete:"))
 @check_character
 async def npc_quest_complete(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for completing a quest.
+    It edits the message with the result of completing the quest and updates the character's journal and inventory.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, npc_idx = callback_query.data.split(':')
     location = await character.whereami()
     npc = location.npcs[int(npc_idx)]
@@ -276,6 +431,14 @@ async def npc_quest_complete(callback_query: CallbackQuery,  character: db.Prota
 @router.callback_query(F.data == "get_quests")
 @check_character
 async def get_quests(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for the get quests button.
+    It edits the message with the current quests of the character.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     quests = await character.get_active_quests()
     if quests:
         quests_msg = '\n'.join([msg_text.msg_quest.format(
@@ -289,6 +452,15 @@ async def get_quests(callback_query: CallbackQuery,  character: db.Protagonist, 
 @router.callback_query(F.data == "get_enemies")
 @check_character
 async def get_enemies(callback_query: CallbackQuery,  character: db.Protagonist, msg: str = None, **kwargs):
+    """
+    A handler function that handles the callback query for the get enemies button.
+    It edits the message with the enemies in the current location of the character and the option to fight them.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param str msg: (optional) The message to be sent. Defaults to None.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     location = await character.whereami()
     enemies = await location.get_enemies()
     if enemies:
@@ -306,6 +478,14 @@ async def get_enemies(callback_query: CallbackQuery,  character: db.Protagonist,
 @router.callback_query(F.data.startswith("fight:"))
 @check_character
 async def fight(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+    """
+    A handler function that handles the callback query for fighting an enemy.
+    It edits the message with the result of the fight and updates the character's stats and inventory.
+
+    :param CallbackQuery callback_query: The callback query from the user.
+    :param db.Protagonist character: The character object for the user.
+    :param \*\*kwargs: Additional keyword arguments.
+    """
     _, enemy_idx = callback_query.data.split(':')
     location = await character.whereami()
     enemy = location.enemies[int(enemy_idx)]
@@ -333,6 +513,9 @@ async def fight(callback_query: CallbackQuery,  character: db.Protagonist, **kwa
 
 
 async def main() -> None:
+    """
+    The main function that creates the bot and the dispatcher and starts polling for updates.
+    """
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     # await bot.delete_my_commands()  # temp
     # await bot.set_chat_menu_button()  # temp
