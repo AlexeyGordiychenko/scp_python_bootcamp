@@ -12,8 +12,12 @@ def get_json_data(filename):
     :returns:
         dict: The data from the JSON file.
     """
-    with open(os.path.join(os.path.dirname(__file__), f'data/{filename}.json'), 'r') as file:
-        return json.load(file)
+    try:
+        with open(os.path.join(os.path.dirname(__file__), f'data/{filename}.json'), 'r') as file:
+            return json.load(file)
+    except Exception as e:
+        print(f"Couldn't read the json file '{filename}': {e}")
+        return []
 
 
 def load_npcs(session):
