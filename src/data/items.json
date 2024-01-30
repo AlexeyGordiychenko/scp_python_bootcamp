@@ -1,77 +1,77 @@
 [
     {
         "id": 1,
-        "name": "Rusty Sword",
+        "name": "🗡️ Rusty Sword",
         "usable": false
     },
     {
         "id": 2,
-        "name": "Potion of Health",
+        "name": "🧪 Potion of Health",
         "usable": true
     },
     {
         "id": 3,
-        "name": "Wolf Pelt",
+        "name": "🐺 Wolf Pelt",
         "usable": false
     },
     {
         "id": 4,
-        "name": "Spider Silk",
+        "name": "🕸️ Spider Silk",
         "usable": false
     },
     {
         "id": 5,
-        "name": "Goblin Dagger",
+        "name": "🗡️ Goblin Dagger",
         "usable": false
     },
     {
         "id": 6,
-        "name": "Cat's Eye",
+        "name": "👁️ Cat's Eye",
         "usable": false
     },
     {
         "id": 7,
-        "name": "Knight's Armor",
+        "name": "🛡️ Knight's Armor",
         "usable": false
     },
     {
         "id": 8,
-        "name": "Dragon Scale",
+        "name": "🐲 Dragon Scale",
         "usable": false
     },
     {
         "id": 9,
-        "name": "Skeleton Bow",
+        "name": "🏹 Skeleton Bow",
         "usable": false
     },
     {
         "id": 10,
-        "name": "Goblin Sword",
+        "name": "🗡️ Goblin Sword",
         "usable": false
     },
     {
         "id": 11,
-        "name": "Goblin Totem",
+        "name": "🗿 Goblin Totem",
         "usable": false
     },
     {
         "id": 12,
-        "name": "Goblin Goggles",
+        "name": "👓 Goblin Goggles",
         "usable": false
     },
     {
         "id": 13,
-        "name": "Goblin Map",
+        "name": "🗺️ Goblin Map",
         "usable": false
     },
     {
         "id": 14,
-        "name": "Magic Feather",
+        "name": "🪶 Magic Feather",
         "usable": false
     },
     {
         "id": 15,
-        "name": "Witch's Broom",
+        "name": "🧹 Witch's Broom",
         "usable": false
     }
 ]

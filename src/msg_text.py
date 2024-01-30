@@ -196,43 +196,43 @@ msg_gen_choose_category = "Choose a category:"
     :meta hide-value:
 """
 
-btn_menu = "Main Menu"
+btn_menu = "🏠 Main Menu"
 """A button that takes the user to the main menu.
 
     :meta hide-value:
 """
 
-btn_back = "Back"
+btn_back = "🔙 Back"
 """A button that takes the user to the previous menu.
 
     :meta hide-value:
 """
 
-btn_dialog = "Dialogue"
+btn_dialog = "💬 Dialogue"
 """A button that initiates a dialogue with an NPC.
 
     :meta hide-value:
 """
 
-btn_quest = "Quest"
+btn_quest = "📜 Quest"
 """A button that displays the quest details of an NPC.
 
     :meta hide-value:
 """
 
-btn_accept = "Accept"
+btn_accept = "✅ Accept"
 """A button that accepts a quest from an NPC.
 
     :meta hide-value:
 """
 
-btn_complete_quest = "Complete"
+btn_complete_quest = "🎉 Complete"
 """A button that completes a quest for an NPC.
 
     :meta hide-value:
 """
 
-btn_quest_not_available = "Not available (required level {level})"
+btn_quest_not_available = "❌ required level {level}"
 """A button that indicates that a quest is not available due to the character's level.
 
     :meta hide-value:
