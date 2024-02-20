@@ -40,10 +40,13 @@ def check_character(func):
         if character is None:
             character = data.get('character')
         msg_id = data.get('msg_id')
-        if character is None or callback_query.message.message_id != msg_id:
-            await send_edit_message(callback_query, msg_text.msg_no_character)
-        else:
-            return await func(callback_query=callback_query, state=state, character=character, **kwargs)
+        try:
+            if character is None or callback_query.message.message_id != msg_id:
+                await send_edit_message(callback_query, msg_text.msg_no_character)
+            else:
+                return await func(callback_query=callback_query, state=state, character=character, **kwargs)
+        except Exception as e:
+            logging.error(str(e))
     return wrapper
 
 
@@ -68,7 +71,10 @@ async def send_edit_message(callback_query: CallbackQuery, msg: str, reply_marku
         btn.text for row in callback_query.message.reply_markup.inline_keyboard for btn in row]
     if html.unescape(msg) != html.unescape(callback_query.message.html_text) \
             or current_btns != msg_btns:
-        await callback_query.message.edit_text(msg, reply_markup=reply_markup)
+        try:
+            await callback_query.message.edit_text(msg, reply_markup=reply_markup)
+        except Exception as e:
+            logging.error(str(e))
 
 
 @router.message(Command("start"))
@@ -81,18 +87,21 @@ async def start_command(message: Message, state: FSMContext, bot: Bot):
     :param FSMContext state: The finite state machine context for the user.
     :param Bot bot: The bot instance.
     """
-    data = await state.get_data()
-    msg_id = data.get('msg_id')
-    if msg_id:
-        if not await bot.delete_message(message.chat.id, msg_id):
-            return
-    existing_character = await db.get_character(message.from_user.id)
-    if existing_character:
-        await state.update_data(character=existing_character)
-        msg = await message.answer(msg_text.msg_welcome.format(name=existing_character.name), reply_markup=kb.main_menu)
-        await state.update_data(msg_id=msg.message_id)
-    else:
-        await message.answer(msg_text.msg_welcome_new, reply_markup=kb.create_character_menu)
+    try:
+        data = await state.get_data()
+        msg_id = data.get('msg_id')
+        if msg_id:
+            if not await bot.delete_message(message.chat.id, msg_id):
+                return
+        existing_character = await db.get_character(message.from_user.id)
+        if existing_character:
+            await state.update_data(character=existing_character)
+            msg = await message.answer(msg_text.msg_welcome.format(name=existing_character.name), reply_markup=kb.main_menu)
+            await state.update_data(msg_id=msg.message_id)
+        else:
+            await message.answer(msg_text.msg_welcome_new, reply_markup=kb.create_character_menu)
+    except Exception as e:
+        logging.error(str(e))
 
 
 @router.callback_query(F.data == "main_menu")
