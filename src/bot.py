@@ -128,6 +128,7 @@ async def create_character(message: Message, state: FSMContext):
     :param Message message: The message from the user.
     :param FSMContext state: The finite state machine context for the user.
     """
+    await state.set_state(None)
     new_character = await db.create_character(message.from_user.id, message.text)
     await state.update_data(character=new_character)
     msg = await message.answer(msg_text.msg_create_succ, reply_markup=kb.main_menu)
