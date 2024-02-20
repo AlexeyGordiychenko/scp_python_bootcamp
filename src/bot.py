@@ -487,7 +487,7 @@ async def get_enemies(callback_query: CallbackQuery,  character: db.Protagonist,
 
 @router.callback_query(F.data.startswith("fight:"))
 @check_character
-async def fight(callback_query: CallbackQuery,  character: db.Protagonist, **kwargs):
+async def fight(callback_query: CallbackQuery,  state: FSMContext, character: db.Protagonist, **kwargs):
     """
     A handler function that handles the callback query for fighting an enemy.
     It edits the message with the result of the fight and updates the character's stats and inventory.
@@ -505,6 +505,7 @@ async def fight(callback_query: CallbackQuery,  character: db.Protagonist, **kwa
         if str(e) == 'You died':
             msg = msg_text.msg_fight_die.format(enemy=enemy.name)
             await character.die()
+            await state.update_data(character=None)
             await send_edit_message(callback_query, msg)
             return
 
@@ -518,7 +519,7 @@ async def fight(callback_query: CallbackQuery,  character: db.Protagonist, **kwa
         result_text = msg_text.msg_fight_fail.format(
             enemy=enemy.name, hp=character.hp)
 
-    await get_enemies(callback_query=callback_query, character=character,
+    await get_enemies(callback_query=callback_query, state=state, character=character,
                       msg=f"{result_text}\n{msg_text.msg_pick_enemy}", **kwargs)
 
 
