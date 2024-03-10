@@ -320,10 +320,10 @@ class Protagonist(Base):
                 session.expire_on_commit = False
                 session.add(self)
                 item = session.merge(item)
-                if item.item.name == 'Potion of Health':
+                if 'potion of health' in item.item.name.lower():
                     await self.heal()
                     effect = f"You've used {item.item.name}.\nYour health increased by 1."
-                item.count -= 1
+                    item.count -= 1
                 if item.count <= 0:
                     session.delete(item)
                 session.commit()
