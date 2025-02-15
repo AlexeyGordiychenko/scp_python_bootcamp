@@ -1,5 +1,23 @@
 # Team 01 - Python Bootcamp
 
+This task was implemented using aiogram framework with sqlite database using SQLAlchemy.
+
+The instructions on how to run the game is in the [INSTRUCTIONS.md](INSTRUCTIONS.md) file.
+
+Some screenshots of the game:
+
+![welcome](misc/bot_welcome.png)
+
+![location](misc/bot_location.png)
+
+![go to](misc/bot_go_to.png)
+
+![inventory](misc/bot_inventory.png)
+
+![npc](misc/bot_npc.png)
+
+## Task
+
 Current market research shows a growth of interest to story-based role-playing games. We count 
 on your abilities to create a fully featured project from scratch.
 
