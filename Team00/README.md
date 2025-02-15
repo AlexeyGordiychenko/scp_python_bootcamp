@@ -1,5 +1,13 @@
 # Team 00 - Python Bootcamp
 
+This task is about parsing wiki, finding the shortest path between two pages and creating a graph visualization of pages relations.
+
+*Note: The parsing part was implemented using threading (ThreadPoolExecutor) but now I figured out that it is better to use asyncio for these kinds of tasks.*
+
+Please follow the instructions in the [INSTRUCTIONS.md](INSTRUCTIONS.md) file to test the implementation.
+
+## Task
+
 ### Exercise 00: Old Style
 
 You need to write a script called `cache_wiki.py`, which main purpose will be to download pages
