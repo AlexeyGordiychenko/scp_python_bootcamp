@@ -1,6 +1,14 @@
 # Day 02 - Python Bootcamp
 
-### Exercise 00: Gaining Access
+Day 02 is about classes and inheritance in Python.
+
+You can just run the scripts to test it, no additional requirements are needed.
+
+If you want to run the tests, make sure you have `pytest` installed.
+
+## Task
+
+### [Exercise 00](EX00/key.py): Gaining Access
 
 You need to describe a Python class `Key` so that an instance of this class
 would pass the checks listed below:
@@ -21,7 +29,7 @@ You are encouraged to write an actual set of tests to simulate the key
 checking according to the errors above (and to simplify peer review).
 This is graded as a bonus.
 
-### Exercise 01: Morality
+### [Exercise 01](EX01/morality.py): Morality
 
 There is a simple game with candy, where there is a machine that
 controls the supply of candy for two groups of people based on whether 
@@ -72,11 +80,7 @@ class Game(object):
         # print top three
 ```
 
-Here, `registry` is used to keep track of the current number of candy
-during the game, while `player1` and `player2` are instances of 
-subclasses of `Player` (each being one of 5 behavior types). Calling 
-`play()` method of a `Game` instance should perform a simulation
-of a specified number of matches between players of a given behavior.
+Here, `registry` is used to keep track of the current number of candy during the game, while `player1` and `player2` are instances of  subclasses of `Player` (each being one of 5 behavior types). Calling  `play()` method of a `Game` instance should perform a simulation of a specified number of matches between players of a given behavior. 
 
 Method `top3()` should print current top three player's behaviors
 along with their current score, like:
@@ -87,18 +91,9 @@ detective 9
 grudger 8
 ```
 
-By default, your code when run should simulate 10 matches (one call of
-`play()`) between every pair of two players with *different* behavior
-types (total 10 rounds by 10 matches each, no matches between two
-copies of the same behavior) and print top three winners after the 
-whole game.
+By default, your code when run should simulate 10 matches (one call of `play()`) between every pair of two players with *different* behavior types (total 10 rounds by 10 matches each, no matches between two copies of the same behavior) and print top three winners after the whole game.
 
-You are strongly encouraged to experiment around with different
-behaviors and writing your own behavior class (this is graded as a
-bonus). You can get even more bonus points if an instance of your 
-class performs better in the same "contest between each pair of
-players" check that at least three of five provided behaviors.
+You are strongly encouraged to experiment around with different behaviors and writing your own behavior class (this is graded as a bonus). You can get even more bonus points if an instance of your  class performs better in the same "contest between each pair of players" check that at least three of five provided behaviors.
 
-Don't forget that the only thing a player can do on each turn is
-either cooperate or cheat, based on a history of a current game.
+Don't forget that the only thing a player can do on each turn is either cooperate or cheat, based on a history of a current game.
 
