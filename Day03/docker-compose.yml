@@ -5,6 +5,6 @@ services:
     environment:
       - S21_REDIS_HOST=redis
   redis:
-    build: src/EX01
+    build: EX01
     ports:
       - "6379:6379"

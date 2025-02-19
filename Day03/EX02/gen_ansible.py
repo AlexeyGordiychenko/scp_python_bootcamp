@@ -4,7 +4,7 @@ import os
 
 def create_deploy_yml():
     # Load the todo.yml file
-    path = os.path.join(os.path.dirname(__file__), '../../materials')
+    path = os.path.dirname(__file__)
     with open(os.path.join(path, "todo.yml"), 'r') as stream:
         try:
             todo = yaml.safe_load(stream)
@@ -24,7 +24,7 @@ def create_deploy_yml():
     }]
 
     # Save the playbook to deploy.yml
-    with open('deploy.yml', 'w') as outfile:
+    with open(os.path.join(path, "deploy.yml"), 'w') as outfile:
         yaml.dump(playbook, outfile, sort_keys=False, default_flow_style=False)
 
 
@@ -58,7 +58,7 @@ def task_copy_files(todo):
             'src': '{{ item.src }}',
             'dest': '{{ item.dest }}'
         },
-        'loop': [{'src': f'../../{file}', 'dest': f'./{file}'} for file in todo['server']['exploit_files']]
+        'loop': [{'src': f'../{file}', 'dest': f'./{file}'} for file in todo['server']['exploit_files']]
     }
 
 

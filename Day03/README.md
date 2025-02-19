@@ -1,8 +1,14 @@
 # Day 03 - Python Bootcamp
 
-### Exercise 00: Innocent Prank
+Day 03 is about html parsing, working with `Redis` and `Ansible`.
 
-You need to write a Python script 'exploit.py' that will do several things:
+The instructions on how to run the scripts is in the [INSTRUCTIONS.md](INSTRUCTIONS.md) file.
+
+## Task
+
+### [Exercise 00](EX00/exploit.py): Innocent Prank
+
+You need to write a Python script [`exploit.py`](EX00/exploit.py) that will do several things:
 
 - First, it needs to read a file [evilcorp.html](evilcorp.html)
 - Second, it should modify page title (in `<title>` tags) to be "Evil Corp - Stealing your money every day"
@@ -10,7 +16,7 @@ You need to write a Python script 'exploit.py' that will do several things:
   into a `body` of a page, saying `<h1>Mr. Robot, you are hacked!</h1>`, where 'Mr. Robot' is a parsed pronoun
   and name.
 - Fourth, it needs to inject a script below into a `body` of a page as well. If everything is okay, when
-  the 'Send' button is pressed, you should see the word "hacked" appearing in an alert window.
+  the `Send` button is pressed, you should see the word "hacked" appearing in an alert window.
 
     ```
     <script>
@@ -30,12 +36,12 @@ You need to write a Python script 'exploit.py' that will do several things:
 - Finally, the link at the bottom of a page should now lead to "https://mrrobot.fandom.com/wiki/Fsociety" with 
   an actual name of the company on a page replaced with "Fsociety".
 
-The new HTML file should be named "evilcorp_hacked.html" and placed in the same directory as the source
-"evilcorp.html" file.
+The new HTML file should be named `evilcorp_hacked.html` and placed in the same directory as the source
+`evilcorp.html` file.
 
-### Exercise 01: Cash Flow
+### [Exercise 01](EX01/): Cash Flow
 
-You need to write two scripts - `producer.py` and `consumer.py`.
+You need to write two scripts - [`producer.py`](EX01/producer.py) and [`consumer.py`](EX01/consumer.py).
 
 Producer needs to generate JSON messages like this:
 
@@ -81,16 +87,14 @@ consumer started like `~$ python consumer.py -e 2222222222,4444444444` should pr
 Notice that only the first line was changed. Second one wasn't because "amount" was negative (even
 though receiver is a bad guy). Third one wasn't changed because bad guy is a sender, not a receiver.
 
-### Exercise 02: Deploy
+### [Exercise 02](EX02/gen_ansible.py): Deploy
 
-To complete this exercise, you don't need to actually know Ansible in details. It would be nice if
-you could test your code through it, even though it's not strictly required. There is a list of
-tasks that should be placed in a generated "deploy.yml" file in YAML format:
+To complete this exercise, you don't need to actually know Ansible in details. It would be nice if you could test your code through it, even though it's not strictly required. There is a list of tasks that should be placed in a generated "deploy.yml" file in YAML format:
 
 - Install packages
 - Copy over files
 - Run files on a remote server with a Python interpreter, specifying corresponding arguments
 
-These tasks should be generated in Ansible notation. The script should be named "gen_ansible.py".
+These tasks should be generated in Ansible notation. The script should be named [`gen_ansible.py`](EX02/gen_ansible.py).
 
 Thus, your code should convert [todo.yml](todo.yml) into "deploy.yml" following this notation.
