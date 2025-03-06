@@ -1,6 +1,8 @@
 # Team 01 - Python Bootcamp
 
-This task was implemented using aiogram framework with sqlite database using SQLAlchemy.
+This task is about creating a bot for a story-based role-playing game.
+
+It was implemented using aiogram framework with sqlite database using SQLAlchemy.
 
 The instructions on how to run the game is in the [INSTRUCTIONS.md](INSTRUCTIONS.md) file.
 
