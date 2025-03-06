@@ -1,6 +1,14 @@
 # Day 04 - Python Bootcamp
 
-### Exercise 00: Energy Flow
+Day 04 is about iterators and generators, working with `pytest`, `pytest-cov` and `pylint`
+
+You can just run the scripts to test it, no additional requirements are needed.
+
+If you want to run the tests, make sure you have `pytest` installed.
+
+## Task
+
+### [Exercise 00](EX00/energy.py): Energy Flow
 
 You need to write a script `energy.py` with a function called `fix_wiring()`, which should accept 
 three iterables (you can test the functionality with just lists) called `cables`, `sockets` and 
