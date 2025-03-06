@@ -1,5 +1,11 @@
 # Day 05 - Python Bootcamp
 
+Day05 is about creating a WSGI+HTTP client-server application, concurrency, threading and synchronization in Python.
+
+The instructions on how to run the scripts is in the [INSTRUCTIONS.md](INSTRUCTIONS.md) file.
+
+## Task
+
 ### Exercise 00: Fool Me Once
 
 Your goal is to implement a WSGI server with an HTTP wrapper without using any external 

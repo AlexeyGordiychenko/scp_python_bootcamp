@@ -13,7 +13,6 @@ species_credentials = {
     "Silence": "Tasha Lem",
     "Slitheen": "Coca-Cola salesman",
     "Sontaran": "General Staal",
-    "Time Lord": "Rassilon",
     "Weeping Angel": "The Division Representative",
     "Zygon": "Broton",
 }

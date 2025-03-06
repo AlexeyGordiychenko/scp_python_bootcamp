@@ -1,6 +1,5 @@
 import os
 import requests
-import sys
 import argparse
 
 SERVER_URL = 'http://localhost:8888'
